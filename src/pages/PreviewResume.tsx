@@ -19,10 +19,10 @@ const PreviewResume = () => {
       return;
     }
 
-    // First try to find by ID (for owner view)
+    // Primeiro tenta encontrar pelo ID (para visualização do proprietário)
     let foundResume = getResumeById(id);
     
-    // If not found by ID, try by shareable link (for company view)
+    // Se não encontrado pelo ID, tenta pelo link compartilhável (para visualização da empresa)
     if (!foundResume) {
       const currentUrl = window.location.href;
       foundResume = getResumeByShareableLink(currentUrl);
@@ -31,7 +31,7 @@ const PreviewResume = () => {
     if (foundResume) {
       setResume(foundResume);
       
-      // Check if current user is the owner
+      // Verifica se o usuário atual é o proprietário
       const currentUser = getUser();
       if (currentUser && currentUser.id === foundResume.userId) {
         setIsOwner(true);
@@ -50,7 +50,7 @@ const PreviewResume = () => {
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading resume...</p>
+            <p className="mt-4 text-gray-600">Carregando currículo...</p>
           </div>
         </div>
       </div>
@@ -67,11 +67,11 @@ const PreviewResume = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold">
-            {isOwner ? "Your Resume" : `${resume.personalInfo.fullName}'s Resume`}
+            {isOwner ? "Seu Currículo" : `Currículo de ${resume.personalInfo.fullName}`}
           </h1>
           {!isOwner && (
             <p className="text-gray-600 mt-2">
-              This resume was shared with you by {resume.personalInfo.fullName}.
+              Este currículo foi compartilhado com você por {resume.personalInfo.fullName}.
             </p>
           )}
         </div>

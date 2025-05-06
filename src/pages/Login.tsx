@@ -12,9 +12,9 @@ const Login = () => {
         <div className="w-full max-w-md px-4">
           <LoginForm />
           <p className="text-center mt-6 text-gray-600">
-            Don't have an account?{" "}
+            Não tem uma conta?{" "}
             <Link to="/register" className="text-primary hover:underline">
-              Register
+              Cadastre-se
             </Link>
           </p>
         </div>

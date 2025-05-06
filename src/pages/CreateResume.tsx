@@ -20,9 +20,9 @@ const CreateResume = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold">Create Your Resume</h1>
+          <h1 className="text-3xl font-bold">Crie Seu Currículo</h1>
           <p className="text-gray-600 mt-2">
-            Fill out the form below to create a professional resume that you can share with employers.
+            Preencha o formulário abaixo para criar um currículo profissional que você pode compartilhar com empregadores.
           </p>
         </div>
         <ResumeForm />

@@ -12,8 +12,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { findUserByEmail, saveUser } from "@/utils/localStorage";
 
 const formSchema = z.object({
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  email: z.string().email({ message: "Por favor, insira um endereço de e-mail válido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -38,24 +38,24 @@ const LoginForm = () => {
   const onSubmit = (data: FormValues) => {
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulação de chamada de API
     setTimeout(() => {
       const user = findUserByEmail(data.email);
       
       if (user) {
-        // In a real app, we would check the password hash here
-        // For demo purposes, we're just logging the user in
+        // Em uma aplicação real, verificaríamos o hash da senha aqui
+        // Para fins de demonstração, estamos apenas logando o usuário
         saveUser(user);
         toast({
-          title: "Login successful",
-          description: "Welcome back!",
+          title: "Login bem-sucedido",
+          description: "Bem-vindo de volta!",
         });
         navigate("/dashboard");
       } else {
         toast({
           variant: "destructive",
-          title: "Login failed",
-          description: "Invalid email or password. Please try again.",
+          title: "Falha no login",
+          description: "E-mail ou senha inválidos. Por favor, tente novamente.",
         });
       }
       
@@ -66,16 +66,16 @@ const LoginForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl">Login</CardTitle>
-        <CardDescription>Enter your credentials to access your account</CardDescription>
+        <CardTitle className="text-2xl">Entrar</CardTitle>
+        <CardDescription>Digite suas credenciais para acessar sua conta</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
-              placeholder="you@example.com"
+              placeholder="seu@email.com"
               {...register("email")}
             />
             {errors.email && (
@@ -83,7 +83,7 @@ const LoginForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -97,7 +97,7 @@ const LoginForm = () => {
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? "Entrando..." : "Entrar"}
           </Button>
         </CardFooter>
       </form>

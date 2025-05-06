@@ -19,7 +19,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
           <FileText className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold text-primary">ResumeLink</span>
+          <span className="text-xl font-bold text-primary">CurrículoLink</span>
         </Link>
 
         <div className="flex items-center space-x-4">
@@ -28,7 +28,7 @@ const Navbar = () => {
               <Link to="/dashboard">
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span>Dashboard</span>
+                  <span>Painel</span>
                 </Button>
               </Link>
               <Button 
@@ -37,7 +37,7 @@ const Navbar = () => {
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
-                <span>Logout</span>
+                <span>Sair</span>
               </Button>
             </>
           ) : (
@@ -45,13 +45,13 @@ const Navbar = () => {
               <Link to="/login">
                 <Button variant="ghost" className="flex items-center space-x-2">
                   <LogIn className="h-4 w-4" />
-                  <span>Login</span>
+                  <span>Entrar</span>
                 </Button>
               </Link>
               <Link to="/register">
                 <Button variant="default" className="flex items-center space-x-2">
                   <User className="h-4 w-4" />
-                  <span>Register</span>
+                  <span>Cadastrar</span>
                 </Button>
               </Link>
             </>

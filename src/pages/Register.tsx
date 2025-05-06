@@ -12,9 +12,9 @@ const Register = () => {
         <div className="w-full max-w-md px-4">
           <RegisterForm />
           <p className="text-center mt-6 text-gray-600">
-            Already have an account?{" "}
+            Já tem uma conta?{" "}
             <Link to="/login" className="text-primary hover:underline">
-              Login
+              Entrar
             </Link>
           </p>
         </div>

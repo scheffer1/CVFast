@@ -26,12 +26,12 @@ const Dashboard = () => {
   }, [user, navigate]);
 
   const handleDeleteResume = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this resume?")) {
+    if (window.confirm("Tem certeza que deseja excluir este currículo?")) {
       deleteResume(id);
       setResumes(resumes.filter(resume => resume.id !== id));
       toast({
-        title: "Resume deleted",
-        description: "Your resume has been permanently deleted",
+        title: "Currículo excluído",
+        description: "Seu currículo foi permanentemente excluído",
       });
     }
   };
@@ -39,8 +39,8 @@ const Dashboard = () => {
   const copyLink = (link: string) => {
     navigator.clipboard.writeText(link);
     toast({
-      title: "Link copied",
-      description: "The resume link has been copied to your clipboard",
+      title: "Link copiado",
+      description: "O link do currículo foi copiado para a área de transferência",
     });
   };
 
@@ -49,10 +49,10 @@ const Dashboard = () => {
       <Navbar />
       <div className="container mx-auto px-4 py-8 flex-1">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">My Resumes</h1>
+          <h1 className="text-3xl font-bold">Meus Currículos</h1>
           <Link to="/create-resume">
             <Button className="flex items-center gap-2">
-              <Plus className="h-4 w-4" /> Create New Resume
+              <Plus className="h-4 w-4" /> Criar Novo Currículo
             </Button>
           </Link>
         </div>
@@ -61,12 +61,12 @@ const Dashboard = () => {
           <Card className="bg-white border-dashed border-2 border-gray-300">
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FileText className="h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-xl font-semibold text-gray-700 mb-2">No resumes yet</h3>
+              <h3 className="text-xl font-semibold text-gray-700 mb-2">Nenhum currículo ainda</h3>
               <p className="text-gray-500 text-center max-w-md mb-6">
-                Create your first resume to share with potential employers
+                Crie seu primeiro currículo para compartilhar com potenciais empregadores
               </p>
               <Link to="/create-resume">
-                <Button>Create Resume</Button>
+                <Button>Criar Currículo</Button>
               </Link>
             </CardContent>
           </Card>
@@ -93,7 +93,7 @@ const Dashboard = () => {
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Skills</h4>
+                      <h4 className="text-sm font-medium text-gray-500">Habilidades</h4>
                       <div className="flex flex-wrap gap-1 mt-1">
                         {resume.skills.slice(0, 3).map((skill, index) => (
                           <span key={index} className="bg-primary/10 text-primary text-xs px-2 py-1 rounded">
@@ -102,21 +102,21 @@ const Dashboard = () => {
                         ))}
                         {resume.skills.length > 3 && (
                           <span className="bg-secondary text-secondary-foreground text-xs px-2 py-1 rounded">
-                            +{resume.skills.length - 3} more
+                            +{resume.skills.length - 3} mais
                           </span>
                         )}
                       </div>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Experience</h4>
+                      <h4 className="text-sm font-medium text-gray-500">Experiência</h4>
                       <p className="text-sm truncate">
                         {resume.experience.length > 0
-                          ? `${resume.experience[0].position} at ${resume.experience[0].company}`
-                          : "No experience listed"}
+                          ? `${resume.experience[0].position} na ${resume.experience[0].company}`
+                          : "Nenhuma experiência listada"}
                       </p>
                     </div>
                     <div>
-                      <h4 className="text-sm font-medium text-gray-500">Last Updated</h4>
+                      <h4 className="text-sm font-medium text-gray-500">Última Atualização</h4>
                       <p className="text-sm">
                         {new Date(resume.updatedAt).toLocaleDateString()}
                       </p>
@@ -126,7 +126,7 @@ const Dashboard = () => {
                 <CardFooter className="flex flex-col space-y-3">
                   <Link to={`/resume/${resume.id}`} className="w-full">
                     <Button variant="default" className="w-full">
-                      View Resume
+                      Visualizar Currículo
                     </Button>
                   </Link>
                   <Button
@@ -134,7 +134,7 @@ const Dashboard = () => {
                     className="w-full flex items-center gap-2"
                     onClick={() => copyLink(resume.shareableLink)}
                   >
-                    <LinkIcon className="h-4 w-4" /> Copy Shareable Link
+                    <LinkIcon className="h-4 w-4" /> Copiar Link Compartilhável
                   </Button>
                 </CardFooter>
               </Card>

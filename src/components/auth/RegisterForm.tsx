@@ -13,12 +13,12 @@ import { findUserByEmail, saveUser, saveUserToDb } from "@/utils/localStorage";
 import { User } from "@/types";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres" }),
+  email: z.string().email({ message: "Por favor, insira um endereço de e-mail válido" }),
+  password: z.string().min(6, { message: "A senha deve ter pelo menos 6 caracteres" }),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
+  message: "As senhas não coincidem",
   path: ["confirmPassword"],
 });
 
@@ -46,36 +46,36 @@ const RegisterForm = () => {
   const onSubmit = (data: FormValues) => {
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulação de chamada de API
     setTimeout(() => {
       const existingUser = findUserByEmail(data.email);
       
       if (existingUser) {
         toast({
           variant: "destructive",
-          title: "Registration failed",
-          description: "An account with this email already exists. Please login instead.",
+          title: "Falha no cadastro",
+          description: "Já existe uma conta com este e-mail. Por favor, faça login.",
         });
         setIsLoading(false);
         return;
       }
       
-      // Create new user
+      // Criar novo usuário
       const newUser: User = {
         id: crypto.randomUUID(),
         name: data.name,
         email: data.email,
       };
       
-      // Save to "database" (localStorage)
+      // Salvar no "banco de dados" (localStorage)
       saveUserToDb(newUser);
       
-      // Log user in
+      // Fazer login do usuário
       saveUser(newUser);
       
       toast({
-        title: "Registration successful",
-        description: "Your account has been created. Welcome to ResumeLink!",
+        title: "Cadastro bem-sucedido",
+        description: "Sua conta foi criada. Bem-vindo ao CurrículoLink!",
       });
       
       navigate("/dashboard");
@@ -86,16 +86,16 @@ const RegisterForm = () => {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl">Create an account</CardTitle>
-        <CardDescription>Enter your information to get started</CardDescription>
+        <CardTitle className="text-2xl">Criar uma conta</CardTitle>
+        <CardDescription>Insira suas informações para começar</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
+            <Label htmlFor="name">Nome Completo</Label>
             <Input
               id="name"
-              placeholder="John Doe"
+              placeholder="João Silva"
               {...register("name")}
             />
             {errors.name && (
@@ -103,10 +103,10 @@ const RegisterForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
-              placeholder="you@example.com"
+              placeholder="seu@email.com"
               {...register("email")}
             />
             {errors.email && (
@@ -114,7 +114,7 @@ const RegisterForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Senha</Label>
             <Input
               id="password"
               type="password"
@@ -126,7 +126,7 @@ const RegisterForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password</Label>
+            <Label htmlFor="confirmPassword">Confirmar Senha</Label>
             <Input
               id="confirmPassword"
               type="password"
@@ -140,7 +140,7 @@ const RegisterForm = () => {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating account..." : "Register"}
+            {isLoading ? "Criando conta..." : "Cadastrar"}
           </Button>
         </CardFooter>
       </form>
