@@ -19,7 +19,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 flex justify-between items-center">
         <Link to="/" className="flex items-center space-x-2">
           <FileText className="h-6 w-6 text-primary" />
-          <span className="text-xl font-bold text-primary">CurrículoLink</span>
+          <span className="text-xl font-bold text-primary">CVFast</span>
         </Link>
 
         <div className="flex items-center space-x-4">

@@ -39,7 +39,7 @@ const Index = () => {
         <section className="py-20">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center mb-12">
-              Por que Escolher o CurrículoLink?
+              Por que Escolher o CVFast?
             </h2>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
@@ -101,7 +101,7 @@ const Index = () => {
       <footer className="bg-gray-100 py-8">
         <div className="container mx-auto px-4 text-center">
           <p className="text-gray-600">
-            © {new Date().getFullYear()} CurrículoLink. Todos os direitos reservados.
+            © {new Date().getFullYear()} CVFast. Todos os direitos reservados.
           </p>
         </div>
       </footer>
