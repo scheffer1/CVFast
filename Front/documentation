@@ -1,0 +1,146 @@
+🧾 Projeto: Centralizador de Currículos
+📌 Objetivo
+Sistema onde usuários cadastram seus currículos (com experiências, escolaridade, contatos e habilidades técnicas) e geram links curtos públicos para serem acessados por ferramentas externas como Gupy, LinkedIn, Indeed, etc.
+
+🧩 Entidades principais
+User
+Autenticação (e-mail, senha)
+
+Pode ter múltiplos currículos
+
+Curriculum
+Resumo pessoal + título
+
+Vinculado a um usuário
+
+Contém seções dinâmicas
+
+Experience
+Empresa, cargo, datas, descrição
+
+Education
+Instituição, curso, campo, datas
+
+Skill
+Nome da tech + nível (enum: básico → especialista)
+
+Contact
+Tipo (telefone, e-mail, linkedin, etc.)
+
+Um currículo pode ter múltiplos contatos
+
+Address
+Endereço completo (rua, número, cidade, país, etc.)
+
+Enum tipo: residencial, atual, outro
+
+ShortLink
+Link curto para acesso público
+
+Pode ser revogado
+
+AccessLog
+Log de acessos via shortlink (IP, user agent, data)
+
+🔒 Enums
+Proficiency: ["básico", "intermediário", "avançado", "especialista"]
+
+ContactType: ["email", "telefone", "linkedin", "github", "site", "whatsapp"]
+
+AddressType: ["residencial", "atual", "outro"]
+
+CurriculumStatus: ["ativo", "revogado", "oculto", "rascunho"]
+🔁 Relações
+plaintext
+Copiar
+Editar
+User 1 --- N Curriculum
+Curriculum 1 --- N [Experience, Education, Skill, Contact, Address, ShortLink]
+ShortLink 1 --- N AccessLog
+
+
+User
+Campo	Tipo	Notas
+Id	UUID	PK
+Email	String	Único, login principal
+PasswordHash	String	
+CreatedAt	DateTime	
+
+Curriculum
+Campo	Tipo	Notas
+Id	UUID	PK
+UserId	UUID	FK → User
+Title	String	Ex: "Currículo profissional"
+Summary	Text	Breve descrição pessoal
+Status	Enum	ativo, revogado, oculto, rascunho
+CreatedAt	DateTime	
+UpdatedAt	DateTime	
+
+Contact
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+Type	Enum	telefone, email, linkedin, etc.
+Value	String	Ex: "+55 48 99999-0000"
+IsPrimary	Boolean	Indica contato principal
+
+Enum Type exemplo: telefone, email, linkedin, github, site, whatsapp
+
+Address
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+Street	String	Rua
+Number	String	Número
+Complement	String	Apto, bloco, etc. (opcional)
+Neighborhood	String	Bairro
+City	String	Cidade
+State	String	Estado
+Country	String	País
+ZipCode	String	CEP
+Type	Enum	residencial, atual, outro
+
+Experience
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+CompanyName	String	Nome da empresa
+Role	String	Cargo
+Description	Text	Descrição das atividades
+StartDate	Date	
+EndDate	Date?	Pode ser null (atual)
+Location	String	Cidade ou remoto (opcional)
+
+Education
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+Institution	String	Nome da instituição
+Degree	String	Curso ou grau
+FieldOfStudy	String	Área (Ex: Ciência da Computação)
+StartDate	Date	
+EndDate	Date?	Pode ser null (cursando)
+
+Skill
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+TechName	String	Ex: "React", "C#", "Docker"
+Proficiency	Enum	básico, intermediário, avançado, especialista
+
+ShortLink
+Campo	Tipo	Notas
+Id	UUID	PK
+CurriculumId	UUID	FK → Curriculum
+Hash	String	Ex: a1B9z
+IsRevoked	Boolean	
+CreatedAt	DateTime	
+RevokedAt	DateTime?	
+
+AccessLog
+Campo	Tipo	Notas
+Id	UUID	PK
+ShortLinkId	UUID	FK → ShortLink
+IP	String	IP do visitante
+UserAgent	Text	Navegador ou robô
+AccessedAt	DateTime	Data/hora do acesso
