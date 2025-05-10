@@ -1,6 +1,7 @@
 🧾 Projeto: Centralizador de Currículos
 📌 Objetivo
 Sistema onde usuários cadastram seus currículos (com experiências, escolaridade, contatos e habilidades técnicas) e geram links curtos públicos para serem acessados por ferramentas externas como Gupy, LinkedIn, Indeed, etc.
+Tambem vai disponibilizar uma API para integracao com sistemas de RH, onde pode ser consultado pelo link e retornado o json de todo o currículo.
 
 🧩 Entidades principais
 User
@@ -54,9 +55,9 @@ CurriculumStatus: ["ativo", "revogado", "oculto", "rascunho"]
 plaintext
 Copiar
 Editar
-User 1 --- N Curriculum
-Curriculum 1 --- N [Experience, Education, Skill, Contact, Address, ShortLink]
-ShortLink 1 --- N AccessLog
+User 1  N Curriculum
+Curriculum 1  N [Experience, Education, Skill, Contact, Address, ShortLink]
+ShortLink 1  N AccessLog
 
 
 User
