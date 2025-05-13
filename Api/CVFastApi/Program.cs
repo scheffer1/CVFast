@@ -1,16 +1,90 @@
+using System.Reflection;
+using System.Text;
 using CVFastApi.Data;
+using CVFastApi.Models.Auth;
 using CVFastApi.Repositories;
 using CVFastApi.Repositories.Interfaces;
+using CVFastApi.Services;
+using CVFastApi.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Configuração do JWT
+builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings?.Issuer,
+        ValidAudience = jwtSettings?.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings?.SecretKey ?? "fallback_key_for_development_only"))
+    };
+});
+
+// Configuração do Swagger
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CVFast API",
+        Version = "v1",
+        Description = "API para gerenciamento de currículos e links curtos",
+        Contact = new OpenApiContact
+        {
+            Name = "CVFast",
+            Email = "contato@cvfast.com.br"
+        }
+    });
+
+    // Configuração de autenticação no Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header usando o esquema Bearer. Exemplo: \"Authorization: Bearer {token}\"",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+
+    // Incluir comentários XML na documentação do Swagger
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    options.IncludeXmlComments(xmlPath);
+});
 
 // Configuração do banco de dados
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -21,6 +95,9 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICurriculumRepository, CurriculumRepository>();
 builder.Services.AddScoped<IShortLinkRepository, ShortLinkRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Configuração dos serviços
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Configuração do CORS
 builder.Services.AddCors(options =>
@@ -39,13 +116,20 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
-    app.MapOpenApi();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "CVFast API v1");
+        options.RoutePrefix = string.Empty; // Para servir a UI do Swagger na raiz
+    });
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigin");
+
+// Adicionar middleware de autenticação
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
