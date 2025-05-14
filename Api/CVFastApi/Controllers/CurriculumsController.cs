@@ -1,6 +1,7 @@
 using CVFastApi.DTOs;
 using CVFastApi.Models;
 using CVFastApi.Repositories.Interfaces;
+using CVFastApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,6 +18,8 @@ namespace CVFastApi.Controllers
     {
         private readonly ICurriculumRepository _curriculumRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IShortLinkService _shortLinkService;
+        private readonly IRepository<AccessLog> _accessLogRepository;
         private readonly ILogger<CurriculumsController> _logger;
 
         /// <summary>
@@ -24,14 +27,20 @@ namespace CVFastApi.Controllers
         /// </summary>
         /// <param name="curriculumRepository">Repositório de currículos</param>
         /// <param name="userRepository">Repositório de usuários</param>
+        /// <param name="shortLinkService">Serviço de links curtos</param>
+        /// <param name="accessLogRepository">Repositório de logs de acesso</param>
         /// <param name="logger">Logger</param>
         public CurriculumsController(
             ICurriculumRepository curriculumRepository,
             IUserRepository userRepository,
+            IShortLinkService shortLinkService,
+            IRepository<AccessLog> accessLogRepository,
             ILogger<CurriculumsController> logger)
         {
             _curriculumRepository = curriculumRepository;
             _userRepository = userRepository;
+            _shortLinkService = shortLinkService;
+            _accessLogRepository = accessLogRepository;
             _logger = logger;
         }
 
@@ -158,10 +167,17 @@ namespace CVFastApi.Controllers
             await _curriculumRepository.AddAsync(curriculum);
             await _curriculumRepository.SaveChangesAsync();
 
-            _logger.LogInformation("Currículo criado: {CurriculumId} para o usuário: {UserId}", curriculum.Id, userId);
+            // Gerar automaticamente um link curto para o currículo
+            var shortLink = await _shortLinkService.GenerateShortLinkAsync(curriculum.Id);
+
+            _logger.LogInformation("Currículo criado: {CurriculumId} para o usuário: {UserId} com link curto: {ShortLinkHash}",
+                curriculum.Id, userId, shortLink.Hash);
+
+            // Obter o currículo atualizado com o link curto
+            var updatedCurriculum = await _curriculumRepository.GetCompleteByIdAsync(curriculum.Id);
 
             return CreatedAtAction(nameof(GetById), new { id = curriculum.Id },
-                ApiResponse<CurriculumDTO>.SuccessResponse(MapToDto(curriculum), "Currículo criado com sucesso"));
+                ApiResponse<CurriculumDTO>.SuccessResponse(MapToDto(updatedCurriculum!), "Currículo criado com sucesso"));
         }
 
         /// <summary>
@@ -243,6 +259,41 @@ namespace CVFastApi.Controllers
             _logger.LogInformation("Currículo removido: {CurriculumId}", id);
 
             return Ok(ApiResponse<object>.SuccessResponse(null, "Currículo removido com sucesso"));
+        }
+
+        /// <summary>
+        /// Acessa um currículo através de um link curto
+        /// </summary>
+        /// <param name="hash">Hash do link curto</param>
+        /// <returns>Currículo associado ao link curto</returns>
+        /// <response code="200">Retorna o currículo</response>
+        /// <response code="404">Link curto não encontrado ou revogado</response>
+        [HttpGet("shortlink/{hash}")]
+        [AllowAnonymous]
+        [ProducesResponseType(typeof(ApiResponse<CurriculumDetailDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AccessByShortLink(string hash)
+        {
+            var curriculum = await _shortLinkService.GetCurriculumByHashAsync(hash);
+            if (curriculum == null)
+            {
+                return NotFound(ApiResponse<object>.ErrorResponse("Link curto não encontrado ou revogado"));
+            }
+
+            // Encontrar o ShortLink para registrar o acesso
+            var shortLink = curriculum.ShortLinks.FirstOrDefault(s => s.Hash == hash && !s.IsRevoked);
+            if (shortLink != null)
+            {
+                // Registrar o acesso
+                await _shortLinkService.RegisterAccessAsync(
+                    shortLink.Id,
+                    HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown",
+                    HttpContext.Request.Headers.UserAgent.ToString());
+            }
+
+            _logger.LogInformation("Acesso ao currículo via link curto: {Hash}", hash);
+
+            return Ok(ApiResponse<CurriculumDetailDTO>.SuccessResponse(MapToDetailDto(curriculum)));
         }
 
         /// <summary>
@@ -336,7 +387,7 @@ namespace CVFastApi.Controllers
                     Id = s.Id,
                     CurriculumId = s.CurriculumId,
                     Hash = s.Hash,
-                    FullUrl = $"{Request.Scheme}://{Request.Host}/api/shortlinks/{s.Hash}",
+                    AccessUrl = s.Hash,
                     IsRevoked = s.IsRevoked,
                     CreatedAt = s.CreatedAt,
                     RevokedAt = s.RevokedAt

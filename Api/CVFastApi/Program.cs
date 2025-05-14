@@ -98,6 +98,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 // Configuração dos serviços
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IShortLinkService, ShortLinkService>();
 
 // Configuração do CORS
 builder.Services.AddCors(options =>

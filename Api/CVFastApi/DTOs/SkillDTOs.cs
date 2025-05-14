@@ -25,7 +25,7 @@ namespace CVFastApi.DTOs
         /// Nível de proficiência na habilidade
         /// </summary>
         [Required(ErrorMessage = "O nível de proficiência é obrigatório")]
-        public Proficiency Proficiency { get; set; }
+        public ProficiencyLevel Proficiency { get; set; }
     }
     
     /// <summary>
@@ -42,7 +42,7 @@ namespace CVFastApi.DTOs
         /// <summary>
         /// Nível de proficiência na habilidade
         /// </summary>
-        public Proficiency? Proficiency { get; set; }
+        public ProficiencyLevel? Proficiency { get; set; }
     }
     
     /// <summary>
@@ -68,6 +68,6 @@ namespace CVFastApi.DTOs
         /// <summary>
         /// Nível de proficiência na habilidade
         /// </summary>
-        public Proficiency Proficiency { get; set; }
+        public ProficiencyLevel Proficiency { get; set; }
     }
 }
