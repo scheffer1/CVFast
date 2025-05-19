@@ -2,15 +2,15 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { getUser, removeUser } from "@/utils/localStorage";
+import authService from "@/services/authService";
 import { FileText, LogIn, LogOut, User } from "lucide-react";
 
 const Navbar = () => {
-  const user = getUser();
+  const user = authService.getCurrentUser();
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    removeUser();
+    authService.logout();
     navigate("/login");
   };
 
@@ -31,8 +31,8 @@ const Navbar = () => {
                   <span>Painel</span>
                 </Button>
               </Link>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="flex items-center space-x-2"
                 onClick={handleLogout}
               >

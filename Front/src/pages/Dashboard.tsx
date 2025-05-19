@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/shared/Navbar";
-import { getUser, getResumesByUserId, deleteResume } from "@/utils/localStorage";
+import { getResumesByUserId, deleteResume } from "@/utils/localStorage";
+import authService from "@/services/authService";
 import { Resume } from "@/types";
 import { FileText, Plus, Trash2, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,7 +14,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [resumes, setResumes] = useState<Resume[]>([]);
-  const [user, setUser] = useState(getUser());
+  const [user, setUser] = useState(authService.getCurrentUser());
 
   useEffect(() => {
     if (!user) {

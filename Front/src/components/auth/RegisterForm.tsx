@@ -9,8 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { findUserByEmail, saveUser, saveUserToDb } from "@/utils/localStorage";
-import { User } from "@/types";
+import authService from "@/services/authService";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "O nome deve ter pelo menos 2 caracteres" }),
@@ -43,44 +42,33 @@ const RegisterForm = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    
-    // Simulação de chamada de API
-    setTimeout(() => {
-      const existingUser = findUserByEmail(data.email);
-      
-      if (existingUser) {
-        toast({
-          variant: "destructive",
-          title: "Falha no cadastro",
-          description: "Já existe uma conta com este e-mail. Por favor, faça login.",
-        });
-        setIsLoading(false);
-        return;
-      }
-      
-      // Criar novo usuário
-      const newUser: User = {
-        id: crypto.randomUUID(),
+
+    try {
+      // Chamada real para a API
+      await authService.register({
         name: data.name,
         email: data.email,
-      };
-      
-      // Salvar no "banco de dados" (localStorage)
-      saveUserToDb(newUser);
-      
-      // Fazer login do usuário
-      saveUser(newUser);
-      
+        password: data.password,
+        confirmPassword: data.confirmPassword
+      });
+
       toast({
         title: "Cadastro bem-sucedido",
-        description: "Sua conta foi criada. Bem-vindo ao CurrículoLink!",
+        description: "Sua conta foi criada. Bem-vindo ao CVFast!",
       });
-      
+
       navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Falha no cadastro",
+        description: error.message || "Ocorreu um erro ao criar sua conta. Por favor, tente novamente.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (

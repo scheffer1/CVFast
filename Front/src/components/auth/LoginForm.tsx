@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { findUserByEmail, saveUser } from "@/utils/localStorage";
+import authService from "@/services/authService";
 
 const formSchema = z.object({
   email: z.string().email({ message: "Por favor, insira um endereço de e-mail válido" }),
@@ -35,32 +35,31 @@ const LoginForm = () => {
     },
   });
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    
-    // Simulação de chamada de API
-    setTimeout(() => {
-      const user = findUserByEmail(data.email);
-      
-      if (user) {
-        // Em uma aplicação real, verificaríamos o hash da senha aqui
-        // Para fins de demonstração, estamos apenas logando o usuário
-        saveUser(user);
-        toast({
-          title: "Login bem-sucedido",
-          description: "Bem-vindo de volta!",
-        });
-        navigate("/dashboard");
-      } else {
-        toast({
-          variant: "destructive",
-          title: "Falha no login",
-          description: "E-mail ou senha inválidos. Por favor, tente novamente.",
-        });
-      }
-      
+
+    try {
+      // Chamada real para a API
+      await authService.login({
+        email: data.email,
+        password: data.password
+      });
+
+      toast({
+        title: "Login bem-sucedido",
+        description: "Bem-vindo de volta!",
+      });
+
+      navigate("/dashboard");
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Falha no login",
+        description: error.message || "E-mail ou senha inválidos. Por favor, tente novamente.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
