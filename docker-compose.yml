@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: cvfast-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: cvfast
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - cvfast-network
+
+networks:
+  cvfast-network:
+    driver: bridge
+
+volumes:
+  postgres_data:

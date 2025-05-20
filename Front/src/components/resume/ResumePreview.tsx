@@ -19,8 +19,8 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
   const copyLink = () => {
     navigator.clipboard.writeText(resume.shareableLink);
     toast({
-      title: "Link copied",
-      description: "The resume link has been copied to your clipboard",
+      title: "Link copiado",
+      description: "O link do currículo foi copiado para a área de transferência",
     });
   };
 
@@ -54,20 +54,20 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
           </div>
 
           <div className="resume-preview-section">
-            <h3>Professional Summary</h3>
+            <h3>Resumo Profissional</h3>
             <p className="mt-2 text-gray-700">{resume.personalInfo.summary}</p>
           </div>
 
           {resume.experience.length > 0 && (
             <div className="resume-preview-section">
-              <h3>Work Experience</h3>
+              <h3>Experiência Profissional</h3>
               <div className="space-y-6 mt-4">
                 {resume.experience.map((exp) => (
                   <div key={exp.id} className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-1">
                       <p className="text-sm text-gray-500 flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {exp.startDate} - {exp.current ? "Present" : exp.endDate}
+                        {exp.startDate} - {exp.current ? "Presente" : exp.endDate}
                       </p>
                       <p className="text-sm text-gray-500 mt-1">{exp.location}</p>
                     </div>
@@ -84,14 +84,14 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
 
           {resume.education.length > 0 && (
             <div className="resume-preview-section">
-              <h3>Education</h3>
+              <h3>Educação</h3>
               <div className="space-y-6 mt-4">
                 {resume.education.map((edu) => (
                   <div key={edu.id} className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="md:col-span-1">
                       <p className="text-sm text-gray-500 flex items-center">
                         <Calendar className="h-3 w-3 mr-1" />
-                        {edu.startDate} - {edu.current ? "Present" : edu.endDate}
+                        {edu.startDate} - {edu.current ? "Presente" : edu.endDate}
                       </p>
                     </div>
                     <div className="md:col-span-3">
@@ -108,7 +108,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
 
           {resume.skills.length > 0 && (
             <div className="resume-preview-section">
-              <h3>Skills</h3>
+              <h3>Habilidades</h3>
               <div className="flex flex-wrap gap-2 mt-3">
                 {resume.skills.map((skill, index) => (
                   <span
@@ -124,7 +124,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
 
           {resume.languages.length > 0 && (
             <div className="resume-preview-section">
-              <h3>Languages</h3>
+              <h3>Idiomas</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-3">
                 {resume.languages.map((lang, index) => (
                   <div key={index} className="flex justify-between">
@@ -175,7 +175,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
                       rel="noopener noreferrer"
                       className="text-primary hover:underline"
                     >
-                      Personal Website
+                      Site Pessoal
                     </a>
                   </div>
                 )}
@@ -186,23 +186,23 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
       </Card>
 
       <div className="bg-secondary p-6 rounded-lg mb-8">
-        <h3 className="text-lg font-semibold mb-4">Share this resume with employers</h3>
+        <h3 className="text-lg font-semibold mb-4">Compartilhe este currículo com empregadores</h3>
         <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
           <Input
             value={resume.shareableLink}
             readOnly
             className="flex-1 bg-white"
           />
-          <Button onClick={copyLink}>Copy Link</Button>
+          <Button onClick={copyLink}>Copiar Link</Button>
         </div>
         <p className="text-sm text-gray-600 mt-3">
-          Companies can view your resume using this link without requiring login credentials.
+          Empresas podem visualizar seu currículo usando este link sem precisar de credenciais de login.
         </p>
       </div>
 
       <div className="flex justify-end space-x-4 mb-10">
         <Link to="/dashboard">
-          <Button variant="outline">Back to Dashboard</Button>
+          <Button variant="outline">Voltar ao Painel</Button>
         </Link>
       </div>
     </div>

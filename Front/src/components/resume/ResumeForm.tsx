@@ -17,23 +17,23 @@ import { getUser, saveResume } from "@/utils/localStorage";
 import { Plus, Trash2 } from "lucide-react";
 
 const personalInfoSchema = z.object({
-  fullName: z.string().min(2, "Full name is required"),
-  email: z.string().email("Valid email is required"),
-  phone: z.string().min(6, "Phone number is required"),
-  address: z.string().min(5, "Address is required"),
-  title: z.string().min(2, "Professional title is required"),
-  summary: z.string().min(10, "Professional summary is required"),
-  linkedin: z.string().url("Must be a valid URL").or(z.string().length(0)).optional(),
-  github: z.string().url("Must be a valid URL").or(z.string().length(0)).optional(),
-  website: z.string().url("Must be a valid URL").or(z.string().length(0)).optional(),
+  fullName: z.string().min(2, "Nome completo é obrigatório"),
+  email: z.string().email("E-mail válido é obrigatório"),
+  phone: z.string().min(6, "Número de telefone é obrigatório"),
+  address: z.string().min(5, "Endereço é obrigatório"),
+  title: z.string().min(2, "Título profissional é obrigatório"),
+  summary: z.string().min(10, "Resumo profissional é obrigatório"),
+  linkedin: z.string().url("Deve ser uma URL válida").or(z.string().length(0)).optional(),
+  github: z.string().url("Deve ser uma URL válida").or(z.string().length(0)).optional(),
+  website: z.string().url("Deve ser uma URL válida").or(z.string().length(0)).optional(),
 });
 
 const educationSchema = z.object({
   id: z.string(),
-  institution: z.string().min(2, "Institution name is required"),
-  degree: z.string().min(2, "Degree is required"),
-  fieldOfStudy: z.string().min(2, "Field of study is required"),
-  startDate: z.string().min(4, "Start date is required"),
+  institution: z.string().min(2, "Nome da instituição é obrigatório"),
+  degree: z.string().min(2, "Grau acadêmico é obrigatório"),
+  fieldOfStudy: z.string().min(2, "Área de estudo é obrigatória"),
+  startDate: z.string().min(4, "Data de início é obrigatória"),
   endDate: z.string().optional(),
   current: z.boolean(),
   description: z.string().optional(),
@@ -41,25 +41,25 @@ const educationSchema = z.object({
 
 const experienceSchema = z.object({
   id: z.string(),
-  company: z.string().min(2, "Company name is required"),
-  position: z.string().min(2, "Position is required"),
-  location: z.string().min(2, "Location is required"),
-  startDate: z.string().min(4, "Start date is required"),
+  company: z.string().min(2, "Nome da empresa é obrigatório"),
+  position: z.string().min(2, "Cargo é obrigatório"),
+  location: z.string().min(2, "Localização é obrigatória"),
+  startDate: z.string().min(4, "Data de início é obrigatória"),
   endDate: z.string().optional(),
   current: z.boolean(),
-  description: z.string().min(10, "Job description is required"),
+  description: z.string().min(10, "Descrição do trabalho é obrigatória"),
 });
 
 const languageSchema = z.object({
-  language: z.string().min(2, "Language name is required"),
-  proficiency: z.enum(["Beginner", "Intermediate", "Advanced", "Fluent", "Native"]),
+  language: z.string().min(2, "Nome do idioma é obrigatório"),
+  proficiency: z.enum(["Iniciante", "Intermediário", "Avançado", "Fluente", "Nativo"]),
 });
 
 const formSchema = z.object({
   personalInfo: personalInfoSchema,
   education: z.array(educationSchema),
   experience: z.array(experienceSchema),
-  skills: z.array(z.string()).min(1, "At least one skill is required"),
+  skills: z.array(z.string()).min(1, "Pelo menos uma habilidade é obrigatória"),
   languages: z.array(languageSchema),
 });
 
@@ -120,7 +120,7 @@ const ResumeForm = () => {
       languages: [
         {
           language: "",
-          proficiency: "Intermediate",
+          proficiency: "Intermediário",
         },
       ],
     },
@@ -164,8 +164,8 @@ const ResumeForm = () => {
     if (!user) {
       toast({
         variant: "destructive",
-        title: "Error",
-        description: "You must be logged in to create a resume",
+        title: "Erro",
+        description: "Você precisa estar logado para criar um currículo",
       });
       navigate("/login");
       return;
@@ -192,8 +192,8 @@ const ResumeForm = () => {
     setTimeout(() => {
       saveResume(newResume);
       toast({
-        title: "Success",
-        description: "Your resume has been created",
+        title: "Sucesso",
+        description: "Seu currículo foi criado com sucesso",
       });
       navigate(`/resume/${uniqueId}`);
       setIsLoading(false);
@@ -204,13 +204,13 @@ const ResumeForm = () => {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {/* Personal Info Section */}
       <div className="resume-form-section">
-        <h3>Personal Information</h3>
+        <h3>Informações Pessoais</h3>
         <div className="form-row">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">Nome Completo</Label>
             <Input
               id="fullName"
-              placeholder="John Doe"
+              placeholder="João Silva"
               {...register("personalInfo.fullName")}
             />
             {errors.personalInfo?.fullName && (
@@ -218,10 +218,10 @@ const ResumeForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="title">Professional Title</Label>
+            <Label htmlFor="title">Título Profissional</Label>
             <Input
               id="title"
-              placeholder="Software Engineer"
+              placeholder="Engenheiro de Software"
               {...register("personalInfo.title")}
             />
             {errors.personalInfo?.title && (
@@ -232,10 +232,10 @@ const ResumeForm = () => {
 
         <div className="form-row">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
-              placeholder="john.doe@example.com"
+              placeholder="joao.silva@exemplo.com"
               {...register("personalInfo.email")}
             />
             {errors.personalInfo?.email && (
@@ -243,10 +243,10 @@ const ResumeForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">Telefone</Label>
             <Input
               id="phone"
-              placeholder="+1 (234) 567-8901"
+              placeholder="(11) 98765-4321"
               {...register("personalInfo.phone")}
             />
             {errors.personalInfo?.phone && (
@@ -256,10 +256,10 @@ const ResumeForm = () => {
         </div>
 
         <div className="space-y-2 mt-4">
-          <Label htmlFor="address">Address</Label>
+          <Label htmlFor="address">Endereço</Label>
           <Input
             id="address"
-            placeholder="123 Main St, City, State, Country"
+            placeholder="Rua Principal, 123, Cidade, Estado"
             {...register("personalInfo.address")}
           />
           {errors.personalInfo?.address && (
@@ -268,10 +268,10 @@ const ResumeForm = () => {
         </div>
 
         <div className="space-y-2 mt-4">
-          <Label htmlFor="summary">Professional Summary</Label>
+          <Label htmlFor="summary">Resumo Profissional</Label>
           <Textarea
             id="summary"
-            placeholder="Briefly describe your professional background and skills"
+            placeholder="Descreva brevemente sua experiência profissional e habilidades"
             className="h-24"
             {...register("personalInfo.summary")}
           />
@@ -282,10 +282,10 @@ const ResumeForm = () => {
 
         <div className="form-row mt-4">
           <div className="space-y-2">
-            <Label htmlFor="linkedin">LinkedIn (optional)</Label>
+            <Label htmlFor="linkedin">LinkedIn (opcional)</Label>
             <Input
               id="linkedin"
-              placeholder="https://linkedin.com/in/johndoe"
+              placeholder="https://linkedin.com/in/seunome"
               {...register("personalInfo.linkedin")}
             />
             {errors.personalInfo?.linkedin && (
@@ -293,10 +293,10 @@ const ResumeForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="github">GitHub (optional)</Label>
+            <Label htmlFor="github">GitHub (opcional)</Label>
             <Input
               id="github"
-              placeholder="https://github.com/johndoe"
+              placeholder="https://github.com/seunome"
               {...register("personalInfo.github")}
             />
             {errors.personalInfo?.github && (
@@ -304,10 +304,10 @@ const ResumeForm = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="website">Personal Website (optional)</Label>
+            <Label htmlFor="website">Site Pessoal (opcional)</Label>
             <Input
               id="website"
-              placeholder="https://johndoe.com"
+              placeholder="https://seusite.com.br"
               {...register("personalInfo.website")}
             />
             {errors.personalInfo?.website && (
@@ -320,7 +320,7 @@ const ResumeForm = () => {
       {/* Education Section */}
       <div className="resume-form-section">
         <div className="flex justify-between items-center mb-4">
-          <h3>Education</h3>
+          <h3>Educação</h3>
           <Button
             type="button"
             variant="outline"
@@ -339,7 +339,7 @@ const ResumeForm = () => {
             }
             className="flex items-center gap-1"
           >
-            <Plus className="h-4 w-4" /> Add Education
+            <Plus className="h-4 w-4" /> Adicionar Educação
           </Button>
         </div>
 
@@ -348,10 +348,10 @@ const ResumeForm = () => {
             <CardContent className="pt-6">
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`education.${index}.institution`}>Institution</Label>
+                  <Label htmlFor={`education.${index}.institution`}>Instituição</Label>
                   <Input
                     id={`education.${index}.institution`}
-                    placeholder="University of Example"
+                    placeholder="Universidade Federal de São Paulo"
                     {...register(`education.${index}.institution`)}
                   />
                   {errors.education?.[index]?.institution && (
@@ -359,10 +359,10 @@ const ResumeForm = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`education.${index}.degree`}>Degree</Label>
+                  <Label htmlFor={`education.${index}.degree`}>Grau Acadêmico</Label>
                   <Input
                     id={`education.${index}.degree`}
-                    placeholder="Bachelor of Science"
+                    placeholder="Bacharelado"
                     {...register(`education.${index}.degree`)}
                   />
                   {errors.education?.[index]?.degree && (
@@ -373,10 +373,10 @@ const ResumeForm = () => {
 
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`education.${index}.fieldOfStudy`}>Field of Study</Label>
+                  <Label htmlFor={`education.${index}.fieldOfStudy`}>Área de Estudo</Label>
                   <Input
                     id={`education.${index}.fieldOfStudy`}
-                    placeholder="Computer Science"
+                    placeholder="Ciência da Computação"
                     {...register(`education.${index}.fieldOfStudy`)}
                   />
                   {errors.education?.[index]?.fieldOfStudy && (
@@ -387,10 +387,10 @@ const ResumeForm = () => {
 
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`education.${index}.startDate`}>Start Date</Label>
+                  <Label htmlFor={`education.${index}.startDate`}>Data de Início</Label>
                   <Input
                     id={`education.${index}.startDate`}
-                    placeholder="e.g., 2018"
+                    placeholder="ex: 2018"
                     {...register(`education.${index}.startDate`)}
                   />
                   {errors.education?.[index]?.startDate && (
@@ -399,18 +399,18 @@ const ResumeForm = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <Label htmlFor={`education.${index}.endDate`}>End Date</Label>
+                    <Label htmlFor={`education.${index}.endDate`}>Data de Término</Label>
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`education.${index}.current`}
                         {...register(`education.${index}.current`)}
                       />
-                      <Label htmlFor={`education.${index}.current`}>Current</Label>
+                      <Label htmlFor={`education.${index}.current`}>Atual</Label>
                     </div>
                   </div>
                   <Input
                     id={`education.${index}.endDate`}
-                    placeholder="e.g., 2022"
+                    placeholder="ex: 2022"
                     disabled={watch(`education.${index}.current`)}
                     {...register(`education.${index}.endDate`)}
                   />
@@ -418,10 +418,10 @@ const ResumeForm = () => {
               </div>
 
               <div className="space-y-2 mt-4">
-                <Label htmlFor={`education.${index}.description`}>Description (optional)</Label>
+                <Label htmlFor={`education.${index}.description`}>Descrição (opcional)</Label>
                 <Textarea
                   id={`education.${index}.description`}
-                  placeholder="Add any additional details about your education"
+                  placeholder="Adicione detalhes adicionais sobre sua formação"
                   className="h-20"
                   {...register(`education.${index}.description`)}
                 />
@@ -435,7 +435,7 @@ const ResumeForm = () => {
                   className="mt-4"
                   onClick={() => removeEducation(index)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> Remove
+                  <Trash2 className="h-4 w-4 mr-2" /> Remover
                 </Button>
               )}
             </CardContent>
@@ -446,7 +446,7 @@ const ResumeForm = () => {
       {/* Experience Section */}
       <div className="resume-form-section">
         <div className="flex justify-between items-center mb-4">
-          <h3>Work Experience</h3>
+          <h3>Experiência Profissional</h3>
           <Button
             type="button"
             variant="outline"
@@ -465,7 +465,7 @@ const ResumeForm = () => {
             }
             className="flex items-center gap-1"
           >
-            <Plus className="h-4 w-4" /> Add Experience
+            <Plus className="h-4 w-4" /> Adicionar Experiência
           </Button>
         </div>
 
@@ -474,10 +474,10 @@ const ResumeForm = () => {
             <CardContent className="pt-6">
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`experience.${index}.company`}>Company</Label>
+                  <Label htmlFor={`experience.${index}.company`}>Empresa</Label>
                   <Input
                     id={`experience.${index}.company`}
-                    placeholder="Acme Inc."
+                    placeholder="Empresa Exemplo Ltda."
                     {...register(`experience.${index}.company`)}
                   />
                   {errors.experience?.[index]?.company && (
@@ -485,10 +485,10 @@ const ResumeForm = () => {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor={`experience.${index}.position`}>Position</Label>
+                  <Label htmlFor={`experience.${index}.position`}>Cargo</Label>
                   <Input
                     id={`experience.${index}.position`}
-                    placeholder="Senior Developer"
+                    placeholder="Desenvolvedor Sênior"
                     {...register(`experience.${index}.position`)}
                   />
                   {errors.experience?.[index]?.position && (
@@ -499,10 +499,10 @@ const ResumeForm = () => {
 
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`experience.${index}.location`}>Location</Label>
+                  <Label htmlFor={`experience.${index}.location`}>Localização</Label>
                   <Input
                     id={`experience.${index}.location`}
-                    placeholder="San Francisco, CA"
+                    placeholder="São Paulo, SP"
                     {...register(`experience.${index}.location`)}
                   />
                   {errors.experience?.[index]?.location && (
@@ -513,10 +513,10 @@ const ResumeForm = () => {
 
               <div className="form-row">
                 <div className="space-y-2">
-                  <Label htmlFor={`experience.${index}.startDate`}>Start Date</Label>
+                  <Label htmlFor={`experience.${index}.startDate`}>Data de Início</Label>
                   <Input
                     id={`experience.${index}.startDate`}
-                    placeholder="e.g., Jan 2020"
+                    placeholder="ex: Jan 2020"
                     {...register(`experience.${index}.startDate`)}
                   />
                   {errors.experience?.[index]?.startDate && (
@@ -525,18 +525,18 @@ const ResumeForm = () => {
                 </div>
                 <div className="space-y-2">
                   <div className="flex justify-between">
-                    <Label htmlFor={`experience.${index}.endDate`}>End Date</Label>
+                    <Label htmlFor={`experience.${index}.endDate`}>Data de Término</Label>
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`experience.${index}.current`}
                         {...register(`experience.${index}.current`)}
                       />
-                      <Label htmlFor={`experience.${index}.current`}>Current</Label>
+                      <Label htmlFor={`experience.${index}.current`}>Atual</Label>
                     </div>
                   </div>
                   <Input
                     id={`experience.${index}.endDate`}
-                    placeholder="e.g., Present"
+                    placeholder="ex: Presente"
                     disabled={watch(`experience.${index}.current`)}
                     {...register(`experience.${index}.endDate`)}
                   />
@@ -544,10 +544,10 @@ const ResumeForm = () => {
               </div>
 
               <div className="space-y-2 mt-4">
-                <Label htmlFor={`experience.${index}.description`}>Description</Label>
+                <Label htmlFor={`experience.${index}.description`}>Descrição</Label>
                 <Textarea
                   id={`experience.${index}.description`}
-                  placeholder="Describe your responsibilities and achievements"
+                  placeholder="Descreva suas responsabilidades e conquistas"
                   className="h-24"
                   {...register(`experience.${index}.description`)}
                 />
@@ -564,7 +564,7 @@ const ResumeForm = () => {
                   className="mt-4"
                   onClick={() => removeExperience(index)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" /> Remove
+                  <Trash2 className="h-4 w-4 mr-2" /> Remover
                 </Button>
               )}
             </CardContent>
@@ -574,11 +574,11 @@ const ResumeForm = () => {
 
       {/* Skills Section */}
       <div className="resume-form-section">
-        <h3>Skills</h3>
+        <h3>Habilidades</h3>
         <div className="space-y-4">
           <div className="flex space-x-2">
             <Input
-              placeholder="Add a skill"
+              placeholder="Adicionar uma habilidade"
               value={skillInput}
               onChange={(e) => setSkillInput(e.target.value)}
               onKeyDown={(e) => {
@@ -593,7 +593,7 @@ const ResumeForm = () => {
               onClick={handleAddSkill}
               variant="secondary"
             >
-              Add
+              Adicionar
             </Button>
           </div>
 
@@ -624,7 +624,7 @@ const ResumeForm = () => {
       {/* Languages Section */}
       <div className="resume-form-section">
         <div className="flex justify-between items-center mb-4">
-          <h3>Languages</h3>
+          <h3>Idiomas</h3>
           <Button
             type="button"
             variant="outline"
@@ -632,22 +632,22 @@ const ResumeForm = () => {
             onClick={() =>
               appendLanguage({
                 language: "",
-                proficiency: "Intermediate",
+                proficiency: "Intermediário",
               })
             }
             className="flex items-center gap-1"
           >
-            <Plus className="h-4 w-4" /> Add Language
+            <Plus className="h-4 w-4" /> Adicionar Idioma
           </Button>
         </div>
 
         {languageFields.map((field, index) => (
           <div key={field.id} className="flex space-x-4 items-end mb-4">
             <div className="flex-1 space-y-2">
-              <Label htmlFor={`languages.${index}.language`}>Language</Label>
+              <Label htmlFor={`languages.${index}.language`}>Idioma</Label>
               <Input
                 id={`languages.${index}.language`}
-                placeholder="English"
+                placeholder="Português"
                 {...register(`languages.${index}.language`)}
               />
               {errors.languages?.[index]?.language && (
@@ -655,20 +655,20 @@ const ResumeForm = () => {
               )}
             </div>
             <div className="flex-1 space-y-2">
-              <Label htmlFor={`languages.${index}.proficiency`}>Proficiency</Label>
+              <Label htmlFor={`languages.${index}.proficiency`}>Nível</Label>
               <Select
                 onValueChange={(value) => setValue(`languages.${index}.proficiency`, value as any)}
                 defaultValue={field.proficiency}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select proficiency" />
+                  <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Beginner">Beginner</SelectItem>
-                  <SelectItem value="Intermediate">Intermediate</SelectItem>
-                  <SelectItem value="Advanced">Advanced</SelectItem>
-                  <SelectItem value="Fluent">Fluent</SelectItem>
-                  <SelectItem value="Native">Native</SelectItem>
+                  <SelectItem value="Iniciante">Iniciante</SelectItem>
+                  <SelectItem value="Intermediário">Intermediário</SelectItem>
+                  <SelectItem value="Avançado">Avançado</SelectItem>
+                  <SelectItem value="Fluente">Fluente</SelectItem>
+                  <SelectItem value="Nativo">Nativo</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -689,7 +689,7 @@ const ResumeForm = () => {
 
       <div className="flex justify-end space-x-4 pb-10">
         <Button type="submit" size="lg" disabled={isLoading}>
-          {isLoading ? "Creating Resume..." : "Create Resume"}
+          {isLoading ? "Criando Currículo..." : "Criar Currículo"}
         </Button>
       </div>
     </form>
