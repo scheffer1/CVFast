@@ -13,8 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Education, Experience, Language, PersonalInfo, Resume } from "@/types";
-import { getUser, saveResume } from "@/utils/localStorage";
-import { Plus, Trash2 } from "lucide-react";
+import curriculumService from "@/services/curriculumService";
+import experienceService from "@/services/experienceService";
+import educationService from "@/services/educationService";
+import skillService from "@/services/skillService";
+import contactService from "@/services/contactService";
+import authService from "@/services/authService";
+import { formatDateForBackend } from "@/utils/dateUtils";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
@@ -157,9 +163,9 @@ const ResumeForm = () => {
     );
   };
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    const user = getUser();
+    const user = authService.getCurrentUser();
 
     if (!user) {
       toast({
@@ -168,36 +174,120 @@ const ResumeForm = () => {
         description: "Você precisa estar logado para criar um currículo",
       });
       navigate("/login");
+      setIsLoading(false);
       return;
     }
 
-    // Create shareable link
-    const uniqueId = crypto.randomUUID();
-    const shareableLink = `${window.location.origin}/resume/${uniqueId}`;
+    try {
+      // 1. Criar o currículo principal
+      const curriculum = await curriculumService.create({
+        title: data.personalInfo.fullName || "Meu Currículo",
+        summary: data.personalInfo.summary,
+        status: 'ativo'
+      });
 
-    const newResume: Resume = {
-      id: uniqueId,
-      userId: user.id,
-      personalInfo: data.personalInfo as PersonalInfo,
-      education: data.education as Education[],
-      experience: data.experience as Experience[],
-      skills: data.skills,
-      languages: data.languages as Language[],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      shareableLink,
-    };
+      // 2. Criar experiências
+      for (const exp of data.experience) {
+        if (exp.company && exp.position) {
+          await experienceService.create({
+            curriculumId: curriculum.id,
+            companyName: exp.company,
+            role: exp.position,
+            startDate: formatDateForBackend(exp.startDate),
+            endDate: exp.current ? undefined : formatDateForBackend(exp.endDate || ''),
+            description: exp.description,
+            location: exp.location
+          });
+        }
+      }
 
-    // Save resume to local storage
-    setTimeout(() => {
-      saveResume(newResume);
+      // 3. Criar educações
+      for (const edu of data.education) {
+        if (edu.institution && edu.degree) {
+          await educationService.create({
+            curriculumId: curriculum.id,
+            institution: edu.institution,
+            degree: edu.degree,
+            fieldOfStudy: edu.fieldOfStudy,
+            startDate: formatDateForBackend(edu.startDate),
+            endDate: edu.current ? undefined : formatDateForBackend(edu.endDate || '')
+          });
+        }
+      }
+
+      // 4. Criar habilidades
+      for (const skill of data.skills) {
+        if (skill.trim()) {
+          await skillService.create({
+            curriculumId: curriculum.id,
+            name: skill,
+            level: 'Intermediario' // Valor padrão, pode ser melhorado futuramente
+          });
+        }
+      }
+
+      // 5. Criar contatos
+      const personalInfo = data.personalInfo;
+      if (personalInfo.email) {
+        await contactService.create({
+          curriculumId: curriculum.id,
+          type: 'Email',
+          value: personalInfo.email,
+          isPrimary: true
+        });
+      }
+
+      if (personalInfo.phone) {
+        await contactService.create({
+          curriculumId: curriculum.id,
+          type: 'Phone',
+          value: personalInfo.phone,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.linkedin) {
+        await contactService.create({
+          curriculumId: curriculum.id,
+          type: 'LinkedIn',
+          value: personalInfo.linkedin,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.github) {
+        await contactService.create({
+          curriculumId: curriculum.id,
+          type: 'GitHub',
+          value: personalInfo.github,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.website) {
+        await contactService.create({
+          curriculumId: curriculum.id,
+          type: 'Website',
+          value: personalInfo.website,
+          isPrimary: false
+        });
+      }
+
       toast({
         title: "Sucesso",
         description: "Seu currículo foi criado com sucesso",
       });
-      navigate(`/resume/${uniqueId}`);
+
+      navigate(`/resume/${curriculum.id}`);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar currículo",
+        description: error.message || "Não foi possível criar o currículo. Tente novamente.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -689,6 +779,7 @@ const ResumeForm = () => {
 
       <div className="flex justify-end space-x-4 pb-10">
         <Button type="submit" size="lg" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isLoading ? "Criando Currículo..." : "Criar Currículo"}
         </Button>
       </div>
