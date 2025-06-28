@@ -15,6 +15,43 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - cvfast-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./Api
+      dockerfile: CVFastApi/Dockerfile
+    container_name: cvfast-backend
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    ports:
+      - "5207:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cvfast-network
+
+  frontend:
+    build:
+      context: ./Front
+      dockerfile: Dockerfile
+      args:
+        - VITE_API_BASE_URL=http://localhost:5207/api
+    container_name: cvfast-frontend
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - cvfast-network
 
 networks:
   cvfast-network:

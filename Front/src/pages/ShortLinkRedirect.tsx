@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "@/components/shared/Navbar";
@@ -9,8 +8,8 @@ import { Resume } from "@/types";
 import { Loader2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
-const PreviewResume = () => {
-  const { id } = useParams<{ id: string }>();
+const ShortLinkRedirect = () => {
+  const { hash } = useParams<{ hash: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [resume, setResume] = useState<Resume | null>(null);
@@ -18,20 +17,20 @@ const PreviewResume = () => {
   const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
-    if (!id) {
-      navigate("/dashboard");
+    if (!hash) {
+      navigate("/");
       return;
     }
 
-    loadCurriculum();
-  }, [id, navigate]);
+    loadCurriculumByShortLink();
+  }, [hash, navigate]);
 
-  const loadCurriculum = async () => {
+  const loadCurriculumByShortLink = async () => {
     try {
       setIsLoading(true);
 
-      // Buscar o currículo pela API
-      const curriculum = await curriculumService.getById(id!);
+      // Buscar o currículo pelo link curto
+      const curriculum = await curriculumService.getByShortLink(hash!);
 
       // Extrair informações de contato
       const emailContact = curriculum.contacts?.find(c => c.type === 'Email');
@@ -98,8 +97,8 @@ const PreviewResume = () => {
     } catch (error: any) {
       toast({
         variant: "destructive",
-        title: "Erro ao carregar currículo",
-        description: error.message || "Não foi possível carregar o currículo",
+        title: "Link não encontrado",
+        description: error.message || "Este link curto não existe ou foi revogado",
       });
       navigate("/not-found");
     } finally {
@@ -133,10 +132,6 @@ const PreviewResume = () => {
     );
   }
 
-  if (!resume) {
-    return null;
-  }
-
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
@@ -157,4 +152,4 @@ const PreviewResume = () => {
   );
 };
 
-export default PreviewResume;
+export default ShortLinkRedirect;

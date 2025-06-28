@@ -44,7 +44,26 @@ namespace CVFastApi.DTOs
         /// </summary>
         public ProficiencyLevel? Proficiency { get; set; }
     }
-    
+
+    /// <summary>
+    /// DTO para criação de skill dentro de um currículo completo (sem CurriculumId)
+    /// </summary>
+    public class CreateSkillForCurriculumDTO
+    {
+        /// <summary>
+        /// Nome da tecnologia ou habilidade
+        /// </summary>
+        [Required(ErrorMessage = "O nome da tecnologia é obrigatório")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "O nome da tecnologia deve ter entre 2 e 100 caracteres")]
+        public string TechName { get; set; } = null!;
+
+        /// <summary>
+        /// Nível de proficiência na habilidade
+        /// </summary>
+        [Required(ErrorMessage = "O nível de proficiência é obrigatório")]
+        public ProficiencyLevel Proficiency { get; set; }
+    }
+
     /// <summary>
     /// DTO para retorno de informações de habilidade técnica
     /// </summary>

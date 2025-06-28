@@ -91,7 +91,51 @@ namespace CVFastApi.DTOs
         [StringLength(2000, ErrorMessage = "A descrição deve ter no máximo 2000 caracteres")]
         public string? Description { get; set; }
     }
-    
+
+    /// <summary>
+    /// DTO para criação de educação dentro de um currículo completo (sem CurriculumId)
+    /// </summary>
+    public class CreateEducationForCurriculumDTO
+    {
+        /// <summary>
+        /// Nome da instituição
+        /// </summary>
+        [Required(ErrorMessage = "O nome da instituição é obrigatório")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "O nome da instituição deve ter entre 2 e 255 caracteres")]
+        public string Institution { get; set; } = null!;
+
+        /// <summary>
+        /// Grau ou título obtido
+        /// </summary>
+        [Required(ErrorMessage = "O grau é obrigatório")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "O grau deve ter entre 2 e 255 caracteres")]
+        public string Degree { get; set; } = null!;
+
+        /// <summary>
+        /// Área de estudo
+        /// </summary>
+        [Required(ErrorMessage = "A área de estudo é obrigatória")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "A área de estudo deve ter entre 2 e 255 caracteres")]
+        public string FieldOfStudy { get; set; } = null!;
+
+        /// <summary>
+        /// Data de início dos estudos
+        /// </summary>
+        [Required(ErrorMessage = "A data de início é obrigatória")]
+        public DateOnly StartDate { get; set; }
+
+        /// <summary>
+        /// Data de conclusão dos estudos (null se ainda cursando)
+        /// </summary>
+        public DateOnly? EndDate { get; set; }
+
+        /// <summary>
+        /// Descrição adicional da formação
+        /// </summary>
+        [StringLength(1000, ErrorMessage = "A descrição deve ter no máximo 1000 caracteres")]
+        public string? Description { get; set; }
+    }
+
     /// <summary>
     /// DTO para retorno de informações de formação acadêmica
     /// </summary>

@@ -1,15 +1,31 @@
 
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import Navbar from "@/components/shared/Navbar";
+import authService from "@/services/authService";
 import { FileText, Plus, Trash2, Link as LinkIcon } from "lucide-react";
 
 const Index = () => {
+  const navigate = useNavigate();
+  const user = authService.getCurrentUser();
+
+  useEffect(() => {
+    // Se o usuário estiver logado, redirecionar para o dashboard
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
+
+  // Se o usuário estiver logado, não renderizar nada (será redirecionado)
+  if (user) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      
+
       <main className="flex-1">
         {/* Seção Principal */}
         <section className="bg-gradient-to-b from-white to-blue-50 py-20">
