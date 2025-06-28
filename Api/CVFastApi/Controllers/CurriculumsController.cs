@@ -1,3 +1,4 @@
+using CVFastApi.Data;
 using CVFastApi.DTOs;
 using CVFastApi.Models;
 using CVFastApi.Repositories.Interfaces;
@@ -20,6 +21,12 @@ namespace CVFastApi.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IShortLinkService _shortLinkService;
         private readonly IRepository<AccessLog> _accessLogRepository;
+        private readonly IRepository<Experience> _experienceRepository;
+        private readonly IRepository<Education> _educationRepository;
+        private readonly IRepository<Skill> _skillRepository;
+        private readonly IRepository<Contact> _contactRepository;
+        private readonly IRepository<Address> _addressRepository;
+        private readonly ApplicationDbContext _context;
         private readonly ILogger<CurriculumsController> _logger;
 
         /// <summary>
@@ -29,18 +36,36 @@ namespace CVFastApi.Controllers
         /// <param name="userRepository">Repositório de usuários</param>
         /// <param name="shortLinkService">Serviço de links curtos</param>
         /// <param name="accessLogRepository">Repositório de logs de acesso</param>
+        /// <param name="experienceRepository">Repositório de experiências</param>
+        /// <param name="educationRepository">Repositório de educações</param>
+        /// <param name="skillRepository">Repositório de habilidades</param>
+        /// <param name="contactRepository">Repositório de contatos</param>
+        /// <param name="addressRepository">Repositório de endereços</param>
+        /// <param name="context">Contexto do banco de dados</param>
         /// <param name="logger">Logger</param>
         public CurriculumsController(
             ICurriculumRepository curriculumRepository,
             IUserRepository userRepository,
             IShortLinkService shortLinkService,
             IRepository<AccessLog> accessLogRepository,
+            IRepository<Experience> experienceRepository,
+            IRepository<Education> educationRepository,
+            IRepository<Skill> skillRepository,
+            IRepository<Contact> contactRepository,
+            IRepository<Address> addressRepository,
+            ApplicationDbContext context,
             ILogger<CurriculumsController> logger)
         {
             _curriculumRepository = curriculumRepository;
             _userRepository = userRepository;
             _shortLinkService = shortLinkService;
             _accessLogRepository = accessLogRepository;
+            _experienceRepository = experienceRepository;
+            _educationRepository = educationRepository;
+            _skillRepository = skillRepository;
+            _contactRepository = contactRepository;
+            _addressRepository = addressRepository;
+            _context = context;
             _logger = logger;
         }
 
@@ -60,14 +85,14 @@ namespace CVFastApi.Controllers
         }
 
         /// <summary>
-        /// Obtém os currículos de um usuário específico
+        /// Obtém os currículos de um usuário específico com informações básicas incluindo shortLinks
         /// </summary>
         /// <param name="userId">ID do usuário</param>
         /// <returns>Lista de currículos do usuário</returns>
         /// <response code="200">Retorna a lista de currículos do usuário</response>
         /// <response code="404">Usuário não encontrado</response>
         [HttpGet("user/{userId:guid}")]
-        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CurriculumDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CurriculumWithShortLinksDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByUserId(Guid userId)
         {
@@ -78,9 +103,19 @@ namespace CVFastApi.Controllers
             }
 
             var curriculums = await _curriculumRepository.GetByUserIdAsync(userId);
-            var curriculumDtos = curriculums.Select(MapToDto);
+            var curriculumDtos = new List<CurriculumWithShortLinksDTO>();
 
-            return Ok(ApiResponse<IEnumerable<CurriculumDTO>>.SuccessResponse(curriculumDtos));
+            foreach (var curriculum in curriculums)
+            {
+                // Carregar o currículo completo para obter os shortLinks
+                var completeCurriculum = await _curriculumRepository.GetCompleteByIdAsync(curriculum.Id);
+                if (completeCurriculum != null)
+                {
+                    curriculumDtos.Add(MapToCurriculumWithShortLinksDto(completeCurriculum));
+                }
+            }
+
+            return Ok(ApiResponse<IEnumerable<CurriculumWithShortLinksDTO>>.SuccessResponse(curriculumDtos));
         }
 
         /// <summary>
@@ -178,6 +213,161 @@ namespace CVFastApi.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = curriculum.Id },
                 ApiResponse<CurriculumDTO>.SuccessResponse(MapToDto(updatedCurriculum!), "Currículo criado com sucesso"));
+        }
+
+        /// <summary>
+        /// Cria um currículo completo com todas as seções de uma vez
+        /// </summary>
+        /// <param name="userId">ID do usuário</param>
+        /// <param name="createCompleteCurriculumDto">Dados completos do currículo</param>
+        /// <returns>Currículo completo criado</returns>
+        /// <response code="201">Currículo completo criado com sucesso</response>
+        /// <response code="400">Dados inválidos</response>
+        /// <response code="404">Usuário não encontrado</response>
+        [HttpPost("user/{userId:guid}/complete")]
+        [ProducesResponseType(typeof(ApiResponse<CurriculumDetailDTO>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CreateComplete(Guid userId, [FromBody] CreateCompleteCurriculumDTO createCompleteCurriculumDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse("Dados inválidos",
+                    ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            }
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound(ApiResponse<object>.ErrorResponse("Usuário não encontrado"));
+            }
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                // 1. Criar o currículo principal
+                var curriculum = new Curriculum
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = userId,
+                    Title = createCompleteCurriculumDto.Title,
+                    Summary = createCompleteCurriculumDto.Summary,
+                    Status = createCompleteCurriculumDto.Status,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                await _curriculumRepository.AddAsync(curriculum);
+                await _curriculumRepository.SaveChangesAsync();
+
+                // 2. Criar experiências
+                foreach (var expDto in createCompleteCurriculumDto.Experiences)
+                {
+                    var experience = new Experience
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        CompanyName = expDto.CompanyName,
+                        Role = expDto.Role,
+                        Description = expDto.Description,
+                        StartDate = expDto.StartDate,
+                        EndDate = expDto.EndDate,
+                        Location = expDto.Location
+                    };
+                    await _experienceRepository.AddAsync(experience);
+                }
+
+                // 3. Criar educações
+                foreach (var eduDto in createCompleteCurriculumDto.Educations)
+                {
+                    var education = new Education
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        Institution = eduDto.Institution,
+                        Degree = eduDto.Degree,
+                        FieldOfStudy = eduDto.FieldOfStudy,
+                        StartDate = eduDto.StartDate,
+                        EndDate = eduDto.EndDate,
+                        Description = eduDto.Description
+                    };
+                    await _educationRepository.AddAsync(education);
+                }
+
+                // 4. Criar habilidades
+                foreach (var skillDto in createCompleteCurriculumDto.Skills)
+                {
+                    var skill = new Skill
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        TechName = skillDto.TechName,
+                        Proficiency = skillDto.Proficiency
+                    };
+                    await _skillRepository.AddAsync(skill);
+                }
+
+                // 5. Criar contatos
+                foreach (var contactDto in createCompleteCurriculumDto.Contacts)
+                {
+                    var contact = new Contact
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        Type = contactDto.Type,
+                        Value = contactDto.Value,
+                        IsPrimary = contactDto.IsPrimary
+                    };
+                    await _contactRepository.AddAsync(contact);
+                }
+
+                // 6. Criar endereços
+                foreach (var addressDto in createCompleteCurriculumDto.Addresses)
+                {
+                    var address = new Address
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        Street = addressDto.Street,
+                        Number = addressDto.Number,
+                        Complement = addressDto.Complement,
+                        Neighborhood = addressDto.Neighborhood,
+                        City = addressDto.City,
+                        State = addressDto.State,
+                        Country = addressDto.Country,
+                        ZipCode = addressDto.ZipCode,
+                        Type = addressDto.Type
+                    };
+                    await _addressRepository.AddAsync(address);
+                }
+
+                // Salvar todas as alterações
+                await _experienceRepository.SaveChangesAsync();
+                await _educationRepository.SaveChangesAsync();
+                await _skillRepository.SaveChangesAsync();
+                await _contactRepository.SaveChangesAsync();
+                await _addressRepository.SaveChangesAsync();
+
+                // 7. Gerar automaticamente um link curto para o currículo
+                var shortLink = await _shortLinkService.GenerateShortLinkAsync(curriculum.Id);
+
+                await transaction.CommitAsync();
+
+                _logger.LogInformation("Currículo completo criado: {CurriculumId} para o usuário: {UserId} com link curto: {ShortLinkHash}",
+                    curriculum.Id, userId, shortLink.Hash);
+
+                // Obter o currículo completo atualizado
+                var completeCurriculum = await _curriculumRepository.GetCompleteByIdAsync(curriculum.Id);
+
+                return CreatedAtAction(nameof(GetCompleteById), new { id = curriculum.Id },
+                    ApiResponse<CurriculumDetailDTO>.SuccessResponse(MapToDetailDto(completeCurriculum!), "Currículo completo criado com sucesso"));
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Erro ao criar currículo completo para o usuário: {UserId}", userId);
+                return StatusCode(500, ApiResponse<object>.ErrorResponse("Erro interno do servidor"));
+            }
         }
 
         /// <summary>
@@ -382,6 +572,35 @@ namespace CVFastApi.Controllers
                     ZipCode = a.ZipCode,
                     Type = a.Type
                 }).ToList(),
+                ShortLinks = curriculum.ShortLinks.Select(s => new ShortLinkDTO
+                {
+                    Id = s.Id,
+                    CurriculumId = s.CurriculumId,
+                    Hash = s.Hash,
+                    AccessUrl = s.Hash,
+                    IsRevoked = s.IsRevoked,
+                    CreatedAt = s.CreatedAt,
+                    RevokedAt = s.RevokedAt
+                }).ToList()
+            };
+        }
+
+        /// <summary>
+        /// Converte um modelo Curriculum para CurriculumWithShortLinksDTO
+        /// </summary>
+        /// <param name="curriculum">Modelo Curriculum</param>
+        /// <returns>DTO do currículo com shortLinks</returns>
+        private static CurriculumWithShortLinksDTO MapToCurriculumWithShortLinksDto(Curriculum curriculum)
+        {
+            return new CurriculumWithShortLinksDTO
+            {
+                Id = curriculum.Id,
+                UserId = curriculum.UserId,
+                Title = curriculum.Title,
+                Summary = curriculum.Summary,
+                Status = curriculum.Status,
+                CreatedAt = curriculum.CreatedAt,
+                UpdatedAt = curriculum.UpdatedAt,
                 ShortLinks = curriculum.ShortLinks.Select(s => new ShortLinkDTO
                 {
                     Id = s.Id,

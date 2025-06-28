@@ -13,8 +13,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Education, Experience, Language, PersonalInfo, Resume } from "@/types";
-import { getUser, saveResume } from "@/utils/localStorage";
-import { Plus, Trash2 } from "lucide-react";
+import completeCurriculumService, {
+  CreateCompleteCurriculumData,
+  CreateExperienceForCurriculumData,
+  CreateEducationForCurriculumData,
+  CreateSkillForCurriculumData,
+  CreateContactForCurriculumData,
+  CreateAddressForCurriculumData
+} from "@/services/completeCurriculumService";
+import authService from "@/services/authService";
+import { formatDateForBackend } from "@/utils/dateUtils";
+import { Plus, Trash2, Loader2 } from "lucide-react";
 
 const personalInfoSchema = z.object({
   fullName: z.string().min(2, "Nome completo é obrigatório"),
@@ -157,9 +166,9 @@ const ResumeForm = () => {
     );
   };
 
-  const onSubmit = (data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsLoading(true);
-    const user = getUser();
+    const user = authService.getCurrentUser();
 
     if (!user) {
       toast({
@@ -168,36 +177,134 @@ const ResumeForm = () => {
         description: "Você precisa estar logado para criar um currículo",
       });
       navigate("/login");
+      setIsLoading(false);
       return;
     }
 
-    // Create shareable link
-    const uniqueId = crypto.randomUUID();
-    const shareableLink = `${window.location.origin}/resume/${uniqueId}`;
+    try {
+      // Preparar dados das experiências
+      const experiences: CreateExperienceForCurriculumData[] = data.experience
+        .filter(exp => exp.company && exp.position)
+        .map(exp => ({
+          companyName: exp.company,
+          role: exp.position,
+          description: exp.description,
+          startDate: formatDateForBackend(exp.startDate)!,
+          endDate: exp.current ? null : formatDateForBackend(exp.endDate || ''),
+          location: exp.location
+        }));
 
-    const newResume: Resume = {
-      id: uniqueId,
-      userId: user.id,
-      personalInfo: data.personalInfo as PersonalInfo,
-      education: data.education as Education[],
-      experience: data.experience as Experience[],
-      skills: data.skills,
-      languages: data.languages as Language[],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      shareableLink,
-    };
+      // Preparar dados das educações
+      const educations: CreateEducationForCurriculumData[] = data.education
+        .filter(edu => edu.institution && edu.degree)
+        .map(edu => ({
+          institution: edu.institution,
+          degree: edu.degree,
+          fieldOfStudy: edu.fieldOfStudy,
+          startDate: formatDateForBackend(edu.startDate)!,
+          endDate: edu.current ? null : formatDateForBackend(edu.endDate || ''),
+          description: edu.description
+        }));
 
-    // Save resume to local storage
-    setTimeout(() => {
-      saveResume(newResume);
+      // Preparar dados das habilidades
+      const skills: CreateSkillForCurriculumData[] = data.skills
+        .filter(skill => skill.trim())
+        .map(skill => ({
+          techName: skill,
+          proficiency: 'Intermediate' as const // Valor padrão
+        }));
+
+      // Preparar dados dos contatos
+      const contacts: CreateContactForCurriculumData[] = [];
+      const personalInfo = data.personalInfo;
+
+      if (personalInfo.email) {
+        contacts.push({
+          type: 'Email',
+          value: personalInfo.email,
+          isPrimary: true
+        });
+      }
+
+      if (personalInfo.phone) {
+        contacts.push({
+          type: 'Phone',
+          value: personalInfo.phone,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.linkedin) {
+        contacts.push({
+          type: 'LinkedIn',
+          value: personalInfo.linkedin,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.github) {
+        contacts.push({
+          type: 'GitHub',
+          value: personalInfo.github,
+          isPrimary: false
+        });
+      }
+
+      if (personalInfo.website) {
+        contacts.push({
+          type: 'Website',
+          value: personalInfo.website,
+          isPrimary: false
+        });
+      }
+
+      // Preparar dados dos endereços (se houver)
+      const addresses: CreateAddressForCurriculumData[] = [];
+      if (personalInfo.address) {
+        // Tentar extrair informações do endereço (simplificado)
+        const addressParts = personalInfo.address.split(',').map(part => part.trim());
+        if (addressParts.length >= 2) {
+          addresses.push({
+            street: addressParts[0] || 'Não informado',
+            number: 'S/N',
+            neighborhood: addressParts[1] || 'Não informado',
+            city: addressParts[2] || 'Não informado',
+            state: addressParts[3] || 'Não informado',
+            country: 'Brasil',
+            type: 'Current'
+          });
+        }
+      }
+
+      // Criar currículo completo
+      const curriculumData: CreateCompleteCurriculumData = {
+        title: data.personalInfo.fullName || "Meu Currículo",
+        summary: data.personalInfo.summary,
+        status: 'Active',
+        experiences,
+        educations,
+        skills,
+        contacts,
+        addresses
+      };
+
+      const curriculum = await completeCurriculumService.create(curriculumData);
+
       toast({
         title: "Sucesso",
         description: "Seu currículo foi criado com sucesso",
       });
-      navigate(`/resume/${uniqueId}`);
+
+      navigate(`/resume/${curriculum.id}`);
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao criar currículo",
+        description: error.message || "Não foi possível criar o currículo. Tente novamente.",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -689,6 +796,7 @@ const ResumeForm = () => {
 
       <div className="flex justify-end space-x-4 pb-10">
         <Button type="submit" size="lg" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isLoading ? "Criando Currículo..." : "Criar Currículo"}
         </Button>
       </div>

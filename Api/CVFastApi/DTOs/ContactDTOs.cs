@@ -55,7 +55,32 @@ namespace CVFastApi.DTOs
         /// </summary>
         public bool? IsPrimary { get; set; }
     }
-    
+
+    /// <summary>
+    /// DTO para criação de contato dentro de um currículo completo (sem CurriculumId)
+    /// </summary>
+    public class CreateContactForCurriculumDTO
+    {
+        /// <summary>
+        /// Tipo de contato
+        /// </summary>
+        [Required(ErrorMessage = "O tipo de contato é obrigatório")]
+        public ContactType Type { get; set; }
+
+        /// <summary>
+        /// Valor do contato (número, email, URL, etc.)
+        /// </summary>
+        [Required(ErrorMessage = "O valor do contato é obrigatório")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "O valor do contato deve ter entre 2 e 255 caracteres")]
+        public string Value { get; set; } = null!;
+
+        /// <summary>
+        /// Indica se é o contato principal deste tipo
+        /// </summary>
+        [Required(ErrorMessage = "A indicação de contato principal é obrigatória")]
+        public bool IsPrimary { get; set; }
+    }
+
     /// <summary>
     /// DTO para retorno de informações de contato
     /// </summary>

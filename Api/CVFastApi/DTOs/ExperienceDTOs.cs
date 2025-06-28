@@ -90,7 +90,50 @@ namespace CVFastApi.DTOs
         [StringLength(255, ErrorMessage = "A localização deve ter no máximo 255 caracteres")]
         public string? Location { get; set; }
     }
-    
+
+    /// <summary>
+    /// DTO para criação de experiência dentro de um currículo completo (sem CurriculumId)
+    /// </summary>
+    public class CreateExperienceForCurriculumDTO
+    {
+        /// <summary>
+        /// Nome da empresa
+        /// </summary>
+        [Required(ErrorMessage = "O nome da empresa é obrigatório")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "O nome da empresa deve ter entre 2 e 255 caracteres")]
+        public string CompanyName { get; set; } = null!;
+
+        /// <summary>
+        /// Cargo/função exercida
+        /// </summary>
+        [Required(ErrorMessage = "O cargo é obrigatório")]
+        [StringLength(255, MinimumLength = 2, ErrorMessage = "O cargo deve ter entre 2 e 255 caracteres")]
+        public string Role { get; set; } = null!;
+
+        /// <summary>
+        /// Descrição das atividades realizadas
+        /// </summary>
+        [StringLength(2000, ErrorMessage = "A descrição deve ter no máximo 2000 caracteres")]
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// Data de início da experiência
+        /// </summary>
+        [Required(ErrorMessage = "A data de início é obrigatória")]
+        public DateOnly StartDate { get; set; }
+
+        /// <summary>
+        /// Data de término da experiência (null se for o emprego atual)
+        /// </summary>
+        public DateOnly? EndDate { get; set; }
+
+        /// <summary>
+        /// Localização da experiência (cidade, país ou remoto)
+        /// </summary>
+        [StringLength(255, ErrorMessage = "A localização deve ter no máximo 255 caracteres")]
+        public string? Location { get; set; }
+    }
+
     /// <summary>
     /// DTO para retorno de informações de experiência profissional
     /// </summary>
