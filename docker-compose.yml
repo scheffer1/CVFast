@@ -42,8 +42,6 @@ services:
     build:
       context: ./Front
       dockerfile: Dockerfile
-      args:
-        - VITE_API_BASE_URL=http://localhost:5207/api
     container_name: cvfast-frontend
     restart: always
     ports:

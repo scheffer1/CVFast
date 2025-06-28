@@ -12,10 +12,6 @@ RUN npm ci
 # Copiar código fonte
 COPY . .
 
-# Definir variável de ambiente para build
-ARG VITE_API_BASE_URL=http://localhost:5207/api
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
 # Build da aplicação
 RUN npm run build
 
