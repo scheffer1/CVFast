@@ -13,11 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
 import { Education, Experience, Language, PersonalInfo, Resume } from "@/types";
-import curriculumService from "@/services/curriculumService";
-import experienceService from "@/services/experienceService";
-import educationService from "@/services/educationService";
-import skillService from "@/services/skillService";
-import contactService from "@/services/contactService";
+import completeCurriculumService, {
+  CreateCompleteCurriculumData,
+  CreateExperienceForCurriculumData,
+  CreateEducationForCurriculumData,
+  CreateSkillForCurriculumData,
+  CreateContactForCurriculumData,
+  CreateAddressForCurriculumData
+} from "@/services/completeCurriculumService";
 import authService from "@/services/authService";
 import { formatDateForBackend } from "@/utils/dateUtils";
 import { Plus, Trash2, Loader2 } from "lucide-react";
@@ -179,58 +182,44 @@ const ResumeForm = () => {
     }
 
     try {
-      // 1. Criar o currículo principal
-      const curriculum = await curriculumService.create({
-        title: data.personalInfo.fullName || "Meu Currículo",
-        summary: data.personalInfo.summary,
-        status: 'ativo'
-      });
+      // Preparar dados das experiências
+      const experiences: CreateExperienceForCurriculumData[] = data.experience
+        .filter(exp => exp.company && exp.position)
+        .map(exp => ({
+          companyName: exp.company,
+          role: exp.position,
+          description: exp.description,
+          startDate: formatDateForBackend(exp.startDate)!,
+          endDate: exp.current ? null : formatDateForBackend(exp.endDate || ''),
+          location: exp.location
+        }));
 
-      // 2. Criar experiências
-      for (const exp of data.experience) {
-        if (exp.company && exp.position) {
-          await experienceService.create({
-            curriculumId: curriculum.id,
-            companyName: exp.company,
-            role: exp.position,
-            startDate: formatDateForBackend(exp.startDate),
-            endDate: exp.current ? undefined : formatDateForBackend(exp.endDate || ''),
-            description: exp.description,
-            location: exp.location
-          });
-        }
-      }
+      // Preparar dados das educações
+      const educations: CreateEducationForCurriculumData[] = data.education
+        .filter(edu => edu.institution && edu.degree)
+        .map(edu => ({
+          institution: edu.institution,
+          degree: edu.degree,
+          fieldOfStudy: edu.fieldOfStudy,
+          startDate: formatDateForBackend(edu.startDate)!,
+          endDate: edu.current ? null : formatDateForBackend(edu.endDate || ''),
+          description: edu.description
+        }));
 
-      // 3. Criar educações
-      for (const edu of data.education) {
-        if (edu.institution && edu.degree) {
-          await educationService.create({
-            curriculumId: curriculum.id,
-            institution: edu.institution,
-            degree: edu.degree,
-            fieldOfStudy: edu.fieldOfStudy,
-            startDate: formatDateForBackend(edu.startDate),
-            endDate: edu.current ? undefined : formatDateForBackend(edu.endDate || '')
-          });
-        }
-      }
+      // Preparar dados das habilidades
+      const skills: CreateSkillForCurriculumData[] = data.skills
+        .filter(skill => skill.trim())
+        .map(skill => ({
+          techName: skill,
+          proficiency: 'Intermediate' as const // Valor padrão
+        }));
 
-      // 4. Criar habilidades
-      for (const skill of data.skills) {
-        if (skill.trim()) {
-          await skillService.create({
-            curriculumId: curriculum.id,
-            name: skill,
-            level: 'Intermediario' // Valor padrão, pode ser melhorado futuramente
-          });
-        }
-      }
-
-      // 5. Criar contatos
+      // Preparar dados dos contatos
+      const contacts: CreateContactForCurriculumData[] = [];
       const personalInfo = data.personalInfo;
+
       if (personalInfo.email) {
-        await contactService.create({
-          curriculumId: curriculum.id,
+        contacts.push({
           type: 'Email',
           value: personalInfo.email,
           isPrimary: true
@@ -238,8 +227,7 @@ const ResumeForm = () => {
       }
 
       if (personalInfo.phone) {
-        await contactService.create({
-          curriculumId: curriculum.id,
+        contacts.push({
           type: 'Phone',
           value: personalInfo.phone,
           isPrimary: false
@@ -247,8 +235,7 @@ const ResumeForm = () => {
       }
 
       if (personalInfo.linkedin) {
-        await contactService.create({
-          curriculumId: curriculum.id,
+        contacts.push({
           type: 'LinkedIn',
           value: personalInfo.linkedin,
           isPrimary: false
@@ -256,8 +243,7 @@ const ResumeForm = () => {
       }
 
       if (personalInfo.github) {
-        await contactService.create({
-          curriculumId: curriculum.id,
+        contacts.push({
           type: 'GitHub',
           value: personalInfo.github,
           isPrimary: false
@@ -265,13 +251,44 @@ const ResumeForm = () => {
       }
 
       if (personalInfo.website) {
-        await contactService.create({
-          curriculumId: curriculum.id,
+        contacts.push({
           type: 'Website',
           value: personalInfo.website,
           isPrimary: false
         });
       }
+
+      // Preparar dados dos endereços (se houver)
+      const addresses: CreateAddressForCurriculumData[] = [];
+      if (personalInfo.address) {
+        // Tentar extrair informações do endereço (simplificado)
+        const addressParts = personalInfo.address.split(',').map(part => part.trim());
+        if (addressParts.length >= 2) {
+          addresses.push({
+            street: addressParts[0] || 'Não informado',
+            number: 'S/N',
+            neighborhood: addressParts[1] || 'Não informado',
+            city: addressParts[2] || 'Não informado',
+            state: addressParts[3] || 'Não informado',
+            country: 'Brasil',
+            type: 'Current'
+          });
+        }
+      }
+
+      // Criar currículo completo
+      const curriculumData: CreateCompleteCurriculumData = {
+        title: data.personalInfo.fullName || "Meu Currículo",
+        summary: data.personalInfo.summary,
+        status: 'Active',
+        experiences,
+        educations,
+        skills,
+        contacts,
+        addresses
+      };
+
+      const curriculum = await completeCurriculumService.create(curriculumData);
 
       toast({
         title: "Sucesso",

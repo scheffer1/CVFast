@@ -11,6 +11,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import CreateResume from "./pages/CreateResume";
 import PreviewResume from "./pages/PreviewResume";
+import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,7 @@ const App = () => (
             </ProtectedRoute>
           } />
           <Route path="/resume/:id" element={<PreviewResume />} />
+          <Route path="/s/:hash" element={<ShortLinkRedirect />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -5,7 +5,7 @@ import authService from './authService';
 export interface CreateCurriculumData {
   title: string;
   summary?: string;
-  status: 'ativo' | 'rascunho' | 'oculto' | 'revogado';
+  status: 'Draft' | 'Active' | 'Hidden' | 'Archived';
 }
 
 export interface CurriculumResponse {
@@ -21,38 +21,58 @@ export interface CurriculumResponse {
     updatedAt: string;
     shortLinks: Array<{
       id: string;
+      curriculumId: string;
       hash: string;
-      isActive: boolean;
+      accessUrl: string;
+      isRevoked: boolean;
       createdAt: string;
+      revokedAt?: string;
     }>;
     experiences: Array<{
       id: string;
-      company: string;
-      position: string;
+      curriculumId: string;
+      companyName: string;
+      role: string;
       startDate: string;
       endDate?: string;
       description?: string;
-      isCurrentJob: boolean;
+      location?: string;
     }>;
     educations: Array<{
       id: string;
+      curriculumId: string;
       institution: string;
       degree: string;
-      field: string;
+      fieldOfStudy: string;
       startDate: string;
       endDate?: string;
-      isCurrentEducation: boolean;
+      description?: string;
     }>;
     skills: Array<{
       id: string;
-      name: string;
-      level: string;
+      curriculumId: string;
+      techName: string;
+      proficiency: string;
     }>;
     contacts: Array<{
       id: string;
+      curriculumId: string;
       type: string;
       value: string;
       isPrimary: boolean;
+    }>;
+    addresses: Array<{
+      id: string;
+      curriculumId: string;
+      street: string;
+      number: string;
+      complement?: string;
+      neighborhood: string;
+      city: string;
+      state: string;
+      country?: string;
+      zipCode?: string;
+      type: string;
     }>;
   };
   errors?: string[];
@@ -128,8 +148,8 @@ const curriculumService = {
   // Obter um currículo específico
   async getById(id: string): Promise<CurriculumResponse['data']> {
     try {
-      const response = await api.get<CurriculumResponse>(`/curriculums/${id}`);
-      
+      const response = await api.get<CurriculumResponse>(`/curriculums/${id}/complete`);
+
       if (response.data.success) {
         return response.data.data;
       } else {
@@ -165,13 +185,31 @@ const curriculumService = {
   async delete(id: string): Promise<void> {
     try {
       const response = await api.delete(`/curriculums/${id}`);
-      
+
       if (!response.data.success) {
         throw new Error(response.data.message || 'Falha ao deletar currículo');
       }
     } catch (error: any) {
       if (error.response && error.response.data) {
         throw new Error(error.response.data.message || 'Falha ao deletar currículo');
+      }
+      throw error;
+    }
+  },
+
+  // Obter um currículo através de link curto
+  async getByShortLink(hash: string): Promise<CurriculumResponse['data']> {
+    try {
+      const response = await api.get<CurriculumResponse>(`/curriculums/shortlink/${hash}`);
+
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || 'Link curto não encontrado');
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || 'Link curto não encontrado');
       }
       throw error;
     }

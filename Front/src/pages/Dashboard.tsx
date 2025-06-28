@@ -18,9 +18,14 @@ interface BackendCurriculum {
   status: string;
   createdAt: string;
   updatedAt: string;
-  shortLinks: Array<{
+  shortLinks?: Array<{
+    id: string;
+    curriculumId: string;
     hash: string;
-    isActive: boolean;
+    accessUrl: string;
+    isRevoked: boolean;
+    createdAt: string;
+    revokedAt?: string;
   }>;
 }
 
@@ -139,18 +144,21 @@ const Dashboard = () => {
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Status</h4>
                       <span className={`text-xs px-2 py-1 rounded ${
-                        curriculum.status === 'ativo' ? 'bg-green-100 text-green-800' :
-                        curriculum.status === 'rascunho' ? 'bg-yellow-100 text-yellow-800' :
-                        curriculum.status === 'oculto' ? 'bg-gray-100 text-gray-800' :
+                        curriculum.status === 'Active' ? 'bg-green-100 text-green-800' :
+                        curriculum.status === 'Draft' ? 'bg-yellow-100 text-yellow-800' :
+                        curriculum.status === 'Hidden' ? 'bg-gray-100 text-gray-800' :
                         'bg-red-100 text-red-800'
                       }`}>
-                        {curriculum.status.charAt(0).toUpperCase() + curriculum.status.slice(1)}
+                        {curriculum.status === 'Active' ? 'Ativo' :
+                         curriculum.status === 'Draft' ? 'Rascunho' :
+                         curriculum.status === 'Hidden' ? 'Oculto' :
+                         curriculum.status === 'Archived' ? 'Arquivado' : curriculum.status}
                       </span>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-gray-500">Link Curto</h4>
                       <p className="text-sm truncate">
-                        {curriculum.shortLinks.length > 0 && curriculum.shortLinks[0].isActive
+                        {curriculum.shortLinks && curriculum.shortLinks.length > 0 && !curriculum.shortLinks[0].isRevoked
                           ? `cvfast.com/${curriculum.shortLinks[0].hash}`
                           : "Nenhum link ativo"}
                       </p>
@@ -169,7 +177,7 @@ const Dashboard = () => {
                       Visualizar Currículo
                     </Button>
                   </Link>
-                  {curriculum.shortLinks.length > 0 && curriculum.shortLinks[0].isActive && (
+                  {curriculum.shortLinks.length > 0 && !curriculum.shortLinks[0].isRevoked && (
                     <Button
                       variant="outline"
                       className="w-full flex items-center gap-2"
