@@ -109,7 +109,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin",
         builder => builder
-            .WithOrigins("http://localhost:8080", "http://cvfast-frontend")
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrEmpty(origin)) return false;
+                var uri = new Uri(origin);
+                // Permite qualquer hostname na porta 8080 (frontend)
+                return uri.Port == 8080;
+            })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());

@@ -1,8 +1,18 @@
 import axios from 'axios';
 
+// Função para obter a URL base da API dinamicamente
+// Detecta automaticamente o hostname atual (localhost, IP, DNS, etc.)
+// e aponta para o backend na porta 5207
+const getApiBaseUrl = () => {
+  const hostname = window.location.hostname;
+  const port = '5207';
+  const protocol = window.location.protocol;
+  return `${protocol}//${hostname}:${port}/api`;
+};
+
 // Criando uma instância do axios com configurações padrão
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5207/api', // URL base da API
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
