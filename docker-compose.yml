@@ -51,19 +51,19 @@ services:
     networks:
       - cvfast-network
       
-    nginx:
-      image: nginx:latest
-      container_name: cvfast-nginx
-      restart: always
-      volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf
-      ports:
-        - "80:80"
-      depends_on:
-        - frontend
-        - backend
-      networks:
-        - cvfast-network
+  nginx:
+    image: nginx:latest
+    container_name: cvfast-nginx
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cvfast-network
 
 networks:
   cvfast-network:
