@@ -1,13 +1,24 @@
 import axios from 'axios';
 
 // Função para obter a URL base da API dinamicamente
-// Detecta automaticamente o hostname atual (localhost, IP, DNS, etc.)
-// e aponta para o backend na porta 5207
 const getApiBaseUrl = () => {
   const hostname = window.location.hostname;
-  const port = '5207';
   const protocol = window.location.protocol;
-  return `${protocol}//${hostname}:${port}/api`;
+
+  // Em desenvolvimento (localhost)
+  if (hostname === 'localhost' || hostname === '127.0.0.1') {
+    return `${protocol}//${hostname}:5207/api`;
+  }
+
+  // Em produção com domínio
+  if (hostname === 'cvfast.com.br' || hostname === 'www.cvfast.com.br') {
+    // Usar HTTPS se disponível, senão HTTP
+    const apiProtocol = protocol === 'https:' ? 'https:' : 'http:';
+    return `${apiProtocol}//web.cvfast.com.br/api`;
+  }
+
+  // Para outros casos (IP da VPS durante testes)
+  return `${protocol}//web.${hostname}/api`;
 };
 
 // Criando uma instância do axios com configurações padrão
