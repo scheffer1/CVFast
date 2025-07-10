@@ -15,17 +15,9 @@ COPY . .
 # Build da aplicação
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine AS production
+# Só exporta os arquivos prontos para volume compartilhado
+FROM alpine AS export
+WORKDIR /export
+COPY --from=build /app/dist .
 
-# Copiar arquivos buildados
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Copiar configuração customizada do nginx
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Expor porta 80
-EXPOSE 80
-
-# Comando para iniciar o nginx
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["sh"]
