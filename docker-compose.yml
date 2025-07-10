@@ -49,11 +49,12 @@ services:
       - frontend-dist:/export
 
   nginx:
-    image: nginx:latest
+    build:
+      context: ./Nginx
+      dockerfile: Dockerfile
     container_name: cvfast-nginx
     restart: always
     volumes:
-      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - frontend-dist:/usr/share/nginx/html:ro
     ports:
       - "80:80"
