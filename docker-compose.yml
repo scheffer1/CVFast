@@ -57,6 +57,7 @@ services:
     restart: always
     volumes:
       - frontend-dist:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro 
     ports:
       - "80:80"
     depends_on:
