@@ -41,12 +41,13 @@ services:
       context: ./Front
       dockerfile: Dockerfile
     container_name: cvfast-frontend
-    restart: "no"
-    command: ["sh"]
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
     networks:
       - cvfast-network
-    volumes:
-      - frontend-dist:/export
 
   nginx:
     build:
