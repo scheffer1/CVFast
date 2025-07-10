@@ -112,9 +112,19 @@ builder.Services.AddCors(options =>
             .SetIsOriginAllowed(origin =>
             {
                 if (string.IsNullOrEmpty(origin)) return false;
-                var uri = new Uri(origin);
-                // Permite qualquer hostname na porta 8080 (frontend)
-                return uri.Port == 8080;
+
+                // Lista de origens permitidas
+                var allowedOrigins = new[]
+                {
+                    "http://localhost:8080",
+                    "https://localhost:8080",
+                    "http://cvfast.com.br",
+                    "https://cvfast.com.br",
+                    "http://www.cvfast.com.br",
+                    "https://www.cvfast.com.br"
+                };
+
+                return allowedOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase);
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -124,17 +134,16 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Habilitando Swagger também em produção para testes
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "CVFast API v1");
-        options.RoutePrefix = string.Empty; // Para servir a UI do Swagger na raiz
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "CVFast API v1");
+    options.RoutePrefix = string.Empty; // Para servir a UI do Swagger na raiz
+});
 
-app.UseHttpsRedirection();
+// Comentado temporariamente para produção HTTP
+// app.UseHttpsRedirection();
 app.UseCors("AllowSpecificOrigin");
 
 // Adicionar middleware de autenticação
