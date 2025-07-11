@@ -21,8 +21,8 @@ namespace CVFastApi.Services.Interfaces
         /// Registra um novo usuário
         /// </summary>
         /// <param name="registerDto">Dados de registro</param>
-        /// <returns>Usuário registrado ou null se falhar</returns>
-        Task<UserDTO?> RegisterAsync(RegisterDTO registerDto);
+        /// <returns>Resposta de autenticação com token ou null se falhar</returns>
+        Task<AuthResponseDTO?> RegisterAsync(RegisterDTO registerDto);
         
         /// <summary>
         /// Gera um token JWT para um usuário

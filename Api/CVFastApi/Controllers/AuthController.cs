@@ -30,32 +30,32 @@ namespace CVFastApi.Controllers
         /// Registra um novo usuário
         /// </summary>
         /// <param name="registerDto">Dados de registro</param>
-        /// <returns>Usuário registrado</returns>
+        /// <returns>Token JWT e informações do usuário registrado</returns>
         /// <response code="201">Usuário registrado com sucesso</response>
         /// <response code="400">Dados inválidos</response>
         /// <response code="409">Email já está em uso</response>
         [HttpPost("register")]
-        [ProducesResponseType(typeof(ApiResponse<UserDTO>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<AuthResponseDTO>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Register([FromBody] RegisterDTO registerDto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ApiResponse<object>.ErrorResponse("Dados inválidos", 
+                return BadRequest(ApiResponse<object>.ErrorResponse("Dados inválidos",
                     ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
             }
 
-            var user = await _authService.RegisterAsync(registerDto);
-            if (user == null)
+            var authResponse = await _authService.RegisterAsync(registerDto);
+            if (authResponse == null)
             {
                 return Conflict(ApiResponse<object>.ErrorResponse("Email já está em uso"));
             }
 
-            _logger.LogInformation("Usuário registrado: {UserId}", user.Id);
+            _logger.LogInformation("Usuário registrado: {UserId}", authResponse.User.Id);
 
-            return CreatedAtAction(nameof(Login), new { email = user.Email }, 
-                ApiResponse<UserDTO>.SuccessResponse(user, "Usuário registrado com sucesso"));
+            return CreatedAtAction(nameof(Login), new { email = authResponse.User.Email },
+                ApiResponse<AuthResponseDTO>.SuccessResponse(authResponse, "Usuário registrado com sucesso"));
         }
 
         /// <summary>

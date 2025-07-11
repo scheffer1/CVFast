@@ -71,7 +71,7 @@ namespace CVFastApi.Services
         }
 
         /// <inheritdoc/>
-        public async Task<UserDTO?> RegisterAsync(RegisterDTO registerDto)
+        public async Task<AuthResponseDTO?> RegisterAsync(RegisterDTO registerDto)
         {
             try
             {
@@ -93,12 +93,20 @@ namespace CVFastApi.Services
                 await _userRepository.AddAsync(user);
                 await _userRepository.SaveChangesAsync();
 
-                return new UserDTO
+                // Gerar token JWT para o usuário recém-registrado
+                var (token, expiration) = GenerateJwtToken(user);
+
+                return new AuthResponseDTO
                 {
-                    Id = user.Id,
-                    Name = user.Name,
-                    Email = user.Email,
-                    CreatedAt = user.CreatedAt
+                    Token = token,
+                    Expiration = expiration,
+                    User = new UserDTO
+                    {
+                        Id = user.Id,
+                        Name = user.Name,
+                        Email = user.Email,
+                        CreatedAt = user.CreatedAt
+                    }
                 };
             }
             catch (Exception ex)

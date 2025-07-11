@@ -34,7 +34,7 @@ const Index = () => {
               Crie Seu Currículo Profissional em Minutos
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-              Construa um currículo que se destaca e compartilhe com empregadores através de um link único. Sem necessidade de download.
+              Construa um currículo que se destaca e compartilhe com empregadores através de um link único. Sem necessidade de download. Aqui você só preenche uma vez!
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link to="/register">
@@ -64,7 +64,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Fácil de Criar</h3>
                 <p className="text-gray-600">
-                  Nosso construtor de currículos intuitivo torna simples criar um currículo profissional em minutos.
+                  Nosso construtor de currículos intuitivo torna simples criar um currículo profissional em minutos. Você só precisa preencher uma vez e terá um currículo profissional para sempre.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
@@ -77,7 +77,7 @@ const Index = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3">Links Compartilháveis</h3>
                 <p className="text-gray-600">
-                  Gere links únicos para compartilhar seu currículo diretamente com potenciais empregadores.
+                  Gere links únicos para compartilhar seu currículo diretamente com potenciais empregadores. Possibilitando integrações via API.
                 </p>
               </div>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 text-center">
@@ -87,9 +87,9 @@ const Index = () => {
                     <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
                   </svg>
                 </div>
-                <h3 className="text-xl font-semibold mb-3">Templates Profissionais</h3>
+                <h3 className="text-xl font-semibold mb-3">Template Profissional</h3>
                 <p className="text-gray-600">
-                  Faça seu currículo se destacar com nossos templates desenvolvidos profissionalmente.
+                  Proporciona um currículo profissionalmente desenvolvido, com informações relevantes e formatadas de forma profissional.
                 </p>
               </div>
             </div>
