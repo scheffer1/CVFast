@@ -32,9 +32,11 @@ namespace CVFastApi.Repositories
         public async Task<Curriculum?> GetCompleteByIdAsync(Guid id)
         {
             return await _dbSet
+                .Include(c => c.User)
                 .Include(c => c.Experiences)
                 .Include(c => c.Educations)
                 .Include(c => c.Skills)
+                .Include(c => c.Languages)
                 .Include(c => c.Contacts)
                 .Include(c => c.Addresses)
                 .Include(c => c.ShortLinks)

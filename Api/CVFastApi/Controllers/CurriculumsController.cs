@@ -1,6 +1,9 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using CVFastApi.Data;
 using CVFastApi.DTOs;
 using CVFastApi.Models;
+using CVFastApi.Repositories;
 using CVFastApi.Repositories.Interfaces;
 using CVFastApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -24,6 +27,7 @@ namespace CVFastApi.Controllers
         private readonly IRepository<Experience> _experienceRepository;
         private readonly IRepository<Education> _educationRepository;
         private readonly IRepository<Skill> _skillRepository;
+        private readonly ILanguageRepository _languageRepository;
         private readonly IRepository<Contact> _contactRepository;
         private readonly IRepository<Address> _addressRepository;
         private readonly ApplicationDbContext _context;
@@ -39,6 +43,7 @@ namespace CVFastApi.Controllers
         /// <param name="experienceRepository">Repositório de experiências</param>
         /// <param name="educationRepository">Repositório de educações</param>
         /// <param name="skillRepository">Repositório de habilidades</param>
+        /// <param name="languageRepository">Repositório de idiomas</param>
         /// <param name="contactRepository">Repositório de contatos</param>
         /// <param name="addressRepository">Repositório de endereços</param>
         /// <param name="context">Contexto do banco de dados</param>
@@ -51,6 +56,7 @@ namespace CVFastApi.Controllers
             IRepository<Experience> experienceRepository,
             IRepository<Education> educationRepository,
             IRepository<Skill> skillRepository,
+            ILanguageRepository languageRepository,
             IRepository<Contact> contactRepository,
             IRepository<Address> addressRepository,
             ApplicationDbContext context,
@@ -63,6 +69,7 @@ namespace CVFastApi.Controllers
             _experienceRepository = experienceRepository;
             _educationRepository = educationRepository;
             _skillRepository = skillRepository;
+            _languageRepository = languageRepository;
             _contactRepository = contactRepository;
             _addressRepository = addressRepository;
             _context = context;
@@ -307,7 +314,20 @@ namespace CVFastApi.Controllers
                     await _skillRepository.AddAsync(skill);
                 }
 
-                // 5. Criar contatos
+                // 5. Criar idiomas
+                foreach (var languageDto in createCompleteCurriculumDto.Languages)
+                {
+                    var language = new Language
+                    {
+                        Id = Guid.NewGuid(),
+                        CurriculumId = curriculum.Id,
+                        LanguageName = languageDto.LanguageName,
+                        Proficiency = languageDto.Proficiency
+                    };
+                    await _languageRepository.AddAsync(language);
+                }
+
+                // 6. Criar contatos
                 foreach (var contactDto in createCompleteCurriculumDto.Contacts)
                 {
                     var contact = new Contact
@@ -470,6 +490,17 @@ namespace CVFastApi.Controllers
                 return NotFound(ApiResponse<object>.ErrorResponse("Link curto não encontrado ou revogado"));
             }
 
+            // Verificar visibilidade do currículo
+            if (curriculum.Status == CurriculumStatus.Hidden)
+            {
+                // Se o currículo está oculto, verificar se o usuário autenticado é o dono
+                var currentUserId = await GetCurrentUserIdAsync();
+                if (currentUserId == null || currentUserId != curriculum.UserId)
+                {
+                    return NotFound(ApiResponse<object>.ErrorResponse("Link curto não encontrado ou revogado"));
+                }
+            }
+
             // Encontrar o ShortLink para registrar o acesso
             var shortLink = curriculum.ShortLinks.FirstOrDefault(s => s.Hash == hash && !s.IsRevoked);
             if (shortLink != null)
@@ -484,6 +515,60 @@ namespace CVFastApi.Controllers
             _logger.LogInformation("Acesso ao currículo via link curto: {Hash}", hash);
 
             return Ok(ApiResponse<CurriculumDetailDTO>.SuccessResponse(MapToDetailDto(curriculum)));
+        }
+
+        /// <summary>
+        /// Altera a visibilidade de um currículo (público/privado)
+        /// </summary>
+        /// <param name="id">ID do currículo</param>
+        /// <param name="visibilityDto">Dados de visibilidade</param>
+        /// <returns>Currículo atualizado</returns>
+        /// <response code="200">Visibilidade alterada com sucesso</response>
+        /// <response code="400">Dados inválidos</response>
+        /// <response code="404">Currículo não encontrado</response>
+        /// <response code="403">Usuário não autorizado</response>
+        [HttpPatch("{id}/visibility")]
+        [Authorize]
+        [ProducesResponseType(typeof(ApiResponse<CurriculumDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> UpdateVisibility(Guid id, [FromBody] UpdateCurriculumVisibilityDTO visibilityDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ApiResponse<object>.ErrorResponse("Dados inválidos",
+                    ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList()));
+            }
+
+            var currentUserId = await GetCurrentUserIdAsync();
+            if (currentUserId == null)
+            {
+                return Unauthorized(ApiResponse<object>.ErrorResponse("Usuário não autenticado"));
+            }
+
+            var curriculum = await _curriculumRepository.GetByIdAsync(id);
+            if (curriculum == null)
+            {
+                return NotFound(ApiResponse<object>.ErrorResponse("Currículo não encontrado"));
+            }
+
+            if (curriculum.UserId != currentUserId)
+            {
+                return Forbid();
+            }
+
+            // Atualizar o status baseado na visibilidade
+            curriculum.Status = visibilityDto.IsPublic ? CurriculumStatus.Active : CurriculumStatus.Hidden;
+            curriculum.UpdatedAt = DateTime.UtcNow;
+
+            _curriculumRepository.Update(curriculum);
+            await _curriculumRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Visibilidade do currículo alterada: {CurriculumId} para {Status} pelo usuário: {UserId}",
+                curriculum.Id, curriculum.Status, currentUserId);
+
+            return Ok(ApiResponse<CurriculumDTO>.SuccessResponse(MapToDto(curriculum), "Visibilidade alterada com sucesso"));
         }
 
         /// <summary>
@@ -521,6 +606,7 @@ namespace CVFastApi.Controllers
                 Status = curriculum.Status,
                 CreatedAt = curriculum.CreatedAt,
                 UpdatedAt = curriculum.UpdatedAt,
+                UserName = curriculum.User?.Name ?? "Usuário",
                 Experiences = curriculum.Experiences.Select(e => new ExperienceDTO
                 {
                     Id = e.Id,
@@ -549,6 +635,13 @@ namespace CVFastApi.Controllers
                     CurriculumId = s.CurriculumId,
                     TechName = s.TechName,
                     Proficiency = s.Proficiency
+                }).ToList(),
+                Languages = curriculum.Languages.Select(l => new LanguageDTO
+                {
+                    Id = l.Id,
+                    CurriculumId = l.CurriculumId,
+                    LanguageName = l.LanguageName,
+                    Proficiency = l.Proficiency
                 }).ToList(),
                 Contacts = curriculum.Contacts.Select(c => new ContactDTO
                 {
@@ -612,6 +705,52 @@ namespace CVFastApi.Controllers
                     RevokedAt = s.RevokedAt
                 }).ToList()
             };
+        }
+
+        /// <summary>
+        /// Obtém o ID do usuário atual a partir do token JWT
+        /// </summary>
+        /// <returns>ID do usuário ou null se não autenticado</returns>
+        private async Task<Guid?> GetCurrentUserIdAsync()
+        {
+            if (!HttpContext.User.Identity?.IsAuthenticated ?? false)
+            {
+                _logger.LogWarning("Usuário não autenticado");
+                return null;
+            }
+
+            // Tentar obter o ID do claim nameidentifier (padrão do ASP.NET Core)
+            var userIdClaim = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out var userId))
+            {
+                _logger.LogInformation("UserId obtido do claim nameidentifier: {UserId}", userId);
+                return userId;
+            }
+
+            // Fallback: tentar pelo claim Sub (JWT padrão)
+            userIdClaim = HttpContext.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+            if (!string.IsNullOrEmpty(userIdClaim) && Guid.TryParse(userIdClaim, out userId))
+            {
+                _logger.LogInformation("UserId obtido do claim Sub: {UserId}", userId);
+                return userId;
+            }
+
+            // Se não conseguir pelos claims de ID, tentar pelo email
+            var emailClaim = HttpContext.User.FindFirst(JwtRegisteredClaimNames.Email)?.Value;
+            if (!string.IsNullOrEmpty(emailClaim))
+            {
+                _logger.LogInformation("Buscando usuário pelo email: {Email}", emailClaim);
+                var user = await _userRepository.GetByEmailAsync(emailClaim);
+                if (user != null)
+                {
+                    _logger.LogInformation("Usuário encontrado pelo email: {UserId}", user.Id);
+                    return user.Id;
+                }
+            }
+
+            _logger.LogWarning("Não foi possível obter o ID do usuário. Claims disponíveis: {Claims}",
+                string.Join(", ", HttpContext.User.Claims.Select(c => $"{c.Type}={c.Value}")));
+            return null;
         }
     }
 }

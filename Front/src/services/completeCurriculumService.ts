@@ -9,6 +9,7 @@ export interface CreateCompleteCurriculumData {
   experiences: CreateExperienceForCurriculumData[];
   educations: CreateEducationForCurriculumData[];
   skills: CreateSkillForCurriculumData[];
+  languages: CreateLanguageForCurriculumData[];
   contacts: CreateContactForCurriculumData[];
   addresses: CreateAddressForCurriculumData[];
 }
@@ -34,6 +35,11 @@ export interface CreateEducationForCurriculumData {
 export interface CreateSkillForCurriculumData {
   techName: string;
   proficiency: 'Basic' | 'Intermediate' | 'Advanced' | 'Expert';
+}
+
+export interface CreateLanguageForCurriculumData {
+  languageName: string;
+  proficiency: 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native';
 }
 
 export interface CreateContactForCurriculumData {

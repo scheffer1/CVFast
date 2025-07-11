@@ -42,8 +42,7 @@ const PreviewResume = () => {
 
       // Extrair endereço principal
       const primaryAddress = curriculum.addresses?.find(a => a.type === 'Current') || curriculum.addresses?.[0];
-      const addressString = primaryAddress ?
-        `${primaryAddress.street}, ${primaryAddress.number}${primaryAddress.complement ? ', ' + primaryAddress.complement : ''}, ${primaryAddress.neighborhood}, ${primaryAddress.city} - ${primaryAddress.state}${primaryAddress.zipCode ? ', ' + primaryAddress.zipCode : ''}` : '';
+      const addressString = primaryAddress ? primaryAddress.street : '';
 
       // Converter os dados do backend para o formato do frontend
       const resumeData: Resume = {
@@ -81,7 +80,10 @@ const PreviewResume = () => {
           description: exp.description || ''
         })) || [],
         skills: curriculum.skills?.map(skill => skill.techName) || [],
-        languages: [],
+        languages: curriculum.languages?.map(lang => ({
+          language: lang.languageName,
+          proficiency: lang.proficiency
+        })) || [],
         createdAt: curriculum.createdAt,
         updatedAt: curriculum.updatedAt,
         shareableLink: curriculum.shortLinks?.[0]?.hash ?

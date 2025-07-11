@@ -41,7 +41,12 @@ namespace CVFastApi.Data
         /// Habilidades técnicas
         /// </summary>
         public DbSet<Skill> Skills { get; set; } = null!;
-        
+
+        /// <summary>
+        /// Idiomas
+        /// </summary>
+        public DbSet<Language> Languages { get; set; } = null!;
+
         /// <summary>
         /// Contatos
         /// </summary>
@@ -133,6 +138,18 @@ namespace CVFastApi.Data
 
                 entity.HasOne(e => e.Curriculum)
                     .WithMany(c => c.Skills)
+                    .HasForeignKey(e => e.CurriculumId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Language>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.LanguageName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Proficiency).IsRequired();
+
+                entity.HasOne(e => e.Curriculum)
+                    .WithMany(c => c.Languages)
                     .HasForeignKey(e => e.CurriculumId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

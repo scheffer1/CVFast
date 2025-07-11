@@ -18,6 +18,7 @@ import completeCurriculumService, {
   CreateExperienceForCurriculumData,
   CreateEducationForCurriculumData,
   CreateSkillForCurriculumData,
+  CreateLanguageForCurriculumData,
   CreateContactForCurriculumData,
   CreateAddressForCurriculumData
 } from "@/services/completeCurriculumService";
@@ -61,7 +62,7 @@ const experienceSchema = z.object({
 
 const languageSchema = z.object({
   language: z.string().min(2, "Nome do idioma é obrigatório"),
-  proficiency: z.enum(["Iniciante", "Intermediário", "Avançado", "Fluente", "Nativo"]),
+  proficiency: z.enum(["Beginner", "Intermediate", "Advanced", "Fluent", "Native"]),
 });
 
 const formSchema = z.object({
@@ -129,7 +130,7 @@ const ResumeForm = () => {
       languages: [
         {
           language: "",
-          proficiency: "Intermediário",
+          proficiency: "Intermediate",
         },
       ],
     },
@@ -214,6 +215,14 @@ const ResumeForm = () => {
           proficiency: 'Intermediate' as const // Valor padrão
         }));
 
+      // Preparar dados dos idiomas
+      const languages: CreateLanguageForCurriculumData[] = data.languages
+        .filter(lang => lang.language.trim())
+        .map(lang => ({
+          languageName: lang.language,
+          proficiency: lang.proficiency as 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native'
+        }));
+
       // Preparar dados dos contatos
       const contacts: CreateContactForCurriculumData[] = [];
       const personalInfo = data.personalInfo;
@@ -260,20 +269,19 @@ const ResumeForm = () => {
 
       // Preparar dados dos endereços (se houver)
       const addresses: CreateAddressForCurriculumData[] = [];
-      if (personalInfo.address) {
-        // Tentar extrair informações do endereço (simplificado)
-        const addressParts = personalInfo.address.split(',').map(part => part.trim());
-        if (addressParts.length >= 2) {
-          addresses.push({
-            street: addressParts[0] || 'Não informado',
-            number: 'S/N',
-            neighborhood: addressParts[1] || 'Não informado',
-            city: addressParts[2] || 'Não informado',
-            state: addressParts[3] || 'Não informado',
-            country: 'Brasil',
-            type: 'Current'
-          });
-        }
+      if (personalInfo.address && personalInfo.address.trim()) {
+        // Se o endereço contém vírgulas, tentar dividir; senão usar o endereço completo como street
+        const addressParts = personalInfo.address.split(',').map(part => part.trim()).filter(part => part.length > 0);
+
+        addresses.push({
+          street: addressParts.length > 1 ? (addressParts[0] || personalInfo.address.trim()) : personalInfo.address.trim(),
+          number: 'S/N',
+          neighborhood: addressParts[1] || 'Não informado',
+          city: addressParts[2] || 'Não informado',
+          state: addressParts[3] || 'Não informado',
+          country: 'Brasil',
+          type: 'Current'
+        });
       }
 
       // Criar currículo completo
@@ -284,6 +292,7 @@ const ResumeForm = () => {
         experiences,
         educations,
         skills,
+        languages,
         contacts,
         addresses
       };
@@ -739,7 +748,7 @@ const ResumeForm = () => {
             onClick={() =>
               appendLanguage({
                 language: "",
-                proficiency: "Intermediário",
+                proficiency: "Intermediate",
               })
             }
             className="flex items-center gap-1"
@@ -771,11 +780,11 @@ const ResumeForm = () => {
                   <SelectValue placeholder="Selecione o nível" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Iniciante">Iniciante</SelectItem>
-                  <SelectItem value="Intermediário">Intermediário</SelectItem>
-                  <SelectItem value="Avançado">Avançado</SelectItem>
-                  <SelectItem value="Fluente">Fluente</SelectItem>
-                  <SelectItem value="Nativo">Nativo</SelectItem>
+                  <SelectItem value="Beginner">Iniciante</SelectItem>
+                  <SelectItem value="Intermediate">Intermediário</SelectItem>
+                  <SelectItem value="Advanced">Avançado</SelectItem>
+                  <SelectItem value="Fluent">Fluente</SelectItem>
+                  <SelectItem value="Native">Nativo</SelectItem>
                 </SelectContent>
               </Select>
             </div>

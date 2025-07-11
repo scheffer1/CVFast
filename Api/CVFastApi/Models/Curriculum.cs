@@ -61,7 +61,12 @@ namespace CVFastApi.Models
         /// Habilidades técnicas do currículo
         /// </summary>
         public virtual ICollection<Skill> Skills { get; set; } = new List<Skill>();
-        
+
+        /// <summary>
+        /// Idiomas do currículo
+        /// </summary>
+        public virtual ICollection<Language> Languages { get; set; } = new List<Language>();
+
         /// <summary>
         /// Contatos do currículo
         /// </summary>

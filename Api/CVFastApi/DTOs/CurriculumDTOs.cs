@@ -143,6 +143,11 @@ namespace CVFastApi.DTOs
         public ICollection<CreateSkillForCurriculumDTO> Skills { get; set; } = new List<CreateSkillForCurriculumDTO>();
 
         /// <summary>
+        /// Idiomas do currículo
+        /// </summary>
+        public ICollection<CreateLanguageForCurriculumDTO> Languages { get; set; } = new List<CreateLanguageForCurriculumDTO>();
+
+        /// <summary>
         /// Contatos do currículo
         /// </summary>
         public ICollection<CreateContactForCurriculumDTO> Contacts { get; set; } = new List<CreateContactForCurriculumDTO>();
@@ -159,6 +164,11 @@ namespace CVFastApi.DTOs
     public class CurriculumDetailDTO : CurriculumDTO
     {
         /// <summary>
+        /// Nome do usuário proprietário do currículo
+        /// </summary>
+        public string UserName { get; set; } = null!;
+
+        /// <summary>
         /// Experiências profissionais do currículo
         /// </summary>
         public ICollection<ExperienceDTO> Experiences { get; set; } = new List<ExperienceDTO>();
@@ -174,6 +184,11 @@ namespace CVFastApi.DTOs
         public ICollection<SkillDTO> Skills { get; set; } = new List<SkillDTO>();
 
         /// <summary>
+        /// Idiomas do currículo
+        /// </summary>
+        public ICollection<LanguageDTO> Languages { get; set; } = new List<LanguageDTO>();
+
+        /// <summary>
         /// Contatos do currículo
         /// </summary>
         public ICollection<ContactDTO> Contacts { get; set; } = new List<ContactDTO>();
@@ -187,5 +202,17 @@ namespace CVFastApi.DTOs
         /// Links curtos para compartilhamento do currículo
         /// </summary>
         public ICollection<ShortLinkDTO> ShortLinks { get; set; } = new List<ShortLinkDTO>();
+    }
+
+    /// <summary>
+    /// DTO para alterar a visibilidade de um currículo
+    /// </summary>
+    public class UpdateCurriculumVisibilityDTO
+    {
+        /// <summary>
+        /// Define se o currículo é público (true) ou privado (false)
+        /// </summary>
+        [Required(ErrorMessage = "A visibilidade é obrigatória")]
+        public bool IsPublic { get; set; }
     }
 }

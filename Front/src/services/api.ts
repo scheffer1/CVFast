@@ -49,11 +49,16 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // Se o erro for 401 (Unauthorized), redirecionar para a página de login
+    // Se o erro for 401 (Unauthorized), verificar se não é uma tentativa de login/registro
     if (error.response && error.response.status === 401) {
-      localStorage.removeItem('auth_token');
-      localStorage.removeItem('current_user');
-      window.location.href = '/login';
+      const requestUrl = error.config?.url || '';
+
+      // Não redirecionar se for uma tentativa de login ou registro
+      if (!requestUrl.includes('/auth/login') && !requestUrl.includes('/auth/register')) {
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('current_user');
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
