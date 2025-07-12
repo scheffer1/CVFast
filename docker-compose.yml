@@ -38,6 +38,23 @@ services:
     networks:
       - cvfast-network
 
+  integration-api:
+    build:
+      context: ./Api
+      dockerfile: CVFastApi.Integration/Dockerfile
+    container_name: cvfast-integration-api
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    expose:
+      - "80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cvfast-network
+
   frontend:
     build:
       context: ./Front

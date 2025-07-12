@@ -1,11 +1,11 @@
 using System.Reflection;
 using System.Text;
-using CVFastApi.Data;
-using CVFastApi.Models.Auth;
-using CVFastApi.Repositories;
-using CVFastApi.Repositories.Interfaces;
-using CVFastApi.Services;
-using CVFastApi.Services.Interfaces;
+using CVFastServices.Data;
+using CVFastServices.Models.Auth;
+using CVFastServices.Repositories;
+using CVFastServices.Repositories.Interfaces;
+using CVFastServices.Services;
+using CVFastServices.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;

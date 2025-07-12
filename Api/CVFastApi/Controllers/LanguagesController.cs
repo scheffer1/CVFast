@@ -1,9 +1,9 @@
+using CVFastServices.DTOs;
+using CVFastServices.Models;
+using CVFastServices.Repositories;
+using CVFastServices.Repositories.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using CVFastApi.DTOs;
-using CVFastApi.Models;
-using CVFastApi.Repositories;
-using CVFastApi.Repositories.Interfaces;
 
 namespace CVFastApi.Controllers
 {

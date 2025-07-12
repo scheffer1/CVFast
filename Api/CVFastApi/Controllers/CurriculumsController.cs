@@ -1,11 +1,11 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using CVFastApi.Data;
-using CVFastApi.DTOs;
-using CVFastApi.Models;
-using CVFastApi.Repositories;
-using CVFastApi.Repositories.Interfaces;
-using CVFastApi.Services.Interfaces;
+using CVFastServices.Data;
+using CVFastServices.DTOs;
+using CVFastServices.Models;
+using CVFastServices.Repositories;
+using CVFastServices.Repositories.Interfaces;
+using CVFastServices.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

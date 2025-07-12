@@ -1,5 +1,5 @@
-using CVFastApi.DTOs;
-using CVFastApi.Services.Interfaces;
+using CVFastServices.DTOs;
+using CVFastServices.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CVFastApi.Controllers

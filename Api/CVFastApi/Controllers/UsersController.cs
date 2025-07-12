@@ -1,9 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
-using CVFastApi.DTOs;
-using CVFastApi.Models;
-using CVFastApi.Repositories.Interfaces;
-using CVFastApi.Services.Interfaces;
+using CVFastServices.DTOs;
+using CVFastServices.Models;
+using CVFastServices.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
