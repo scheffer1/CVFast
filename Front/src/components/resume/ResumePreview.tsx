@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
-import { Calendar, FileText, Link as LinkIcon, Mail, Phone } from "lucide-react";
+import { Calendar, FileText, Link as LinkIcon, Mail, Phone, MapPin } from "lucide-react";
 
 interface ResumePreviewProps {
   resume: Resume;
@@ -24,6 +24,17 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
     });
   };
 
+  const translateProficiency = (proficiency: string) => {
+    const translations: { [key: string]: string } = {
+      'Beginner': 'Iniciante',
+      'Intermediate': 'Intermediário',
+      'Advanced': 'Avançado',
+      'Fluent': 'Fluente',
+      'Native': 'Nativo'
+    };
+    return translations[proficiency] || proficiency;
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <Card className="mb-8">
@@ -33,9 +44,6 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
               <h2 className="text-3xl font-bold text-primary">
                 {resume.personalInfo.fullName}
               </h2>
-              <p className="text-lg text-gray-600 mt-1">
-                {resume.personalInfo.title}
-              </p>
             </div>
             <div className="flex flex-col space-y-2 mt-4 md:mt-0">
               <div className="flex items-center">
@@ -46,10 +54,12 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
                 <Phone className="h-4 w-4 mr-2 text-primary" />
                 <span>{resume.personalInfo.phone}</span>
               </div>
-              <div className="flex items-center">
-                <FileText className="h-4 w-4 mr-2 text-primary" />
-                <span>{resume.personalInfo.address}</span>
-              </div>
+              {resume.personalInfo.address && (
+                <div className="flex items-center">
+                  <MapPin className="h-4 w-4 mr-2 text-primary" />
+                  <span>{resume.personalInfo.address}</span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -129,7 +139,7 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
                 {resume.languages.map((lang, index) => (
                   <div key={index} className="flex justify-between">
                     <span>{lang.language}</span>
-                    <span className="text-gray-500">{lang.proficiency}</span>
+                    <span className="text-gray-500">{translateProficiency(lang.proficiency)}</span>
                   </div>
                 ))}
               </div>

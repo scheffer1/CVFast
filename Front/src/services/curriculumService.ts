@@ -19,6 +19,7 @@ export interface CurriculumResponse {
     status: string;
     createdAt: string;
     updatedAt: string;
+    userName?: string;
     shortLinks: Array<{
       id: string;
       curriculumId: string;
@@ -52,6 +53,12 @@ export interface CurriculumResponse {
       id: string;
       curriculumId: string;
       techName: string;
+      proficiency: string;
+    }>;
+    languages: Array<{
+      id: string;
+      curriculumId: string;
+      languageName: string;
       proficiency: string;
     }>;
     contacts: Array<{
@@ -210,6 +217,26 @@ const curriculumService = {
     } catch (error: any) {
       if (error.response && error.response.data) {
         throw new Error(error.response.data.message || 'Link curto não encontrado');
+      }
+      throw error;
+    }
+  },
+
+  // Alterar visibilidade do currículo
+  async updateVisibility(id: string, isPublic: boolean): Promise<CurriculumResponse['data']> {
+    try {
+      const response = await api.patch<CurriculumResponse>(`/curriculums/${id}/visibility`, {
+        isPublic
+      });
+
+      if (response.data.success) {
+        return response.data.data;
+      } else {
+        throw new Error(response.data.message || 'Falha ao alterar visibilidade');
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data) {
+        throw new Error(error.response.data.message || 'Falha ao alterar visibilidade');
       }
       throw error;
     }

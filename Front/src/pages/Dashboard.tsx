@@ -3,10 +3,12 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import Navbar from "@/components/shared/Navbar";
 import curriculumService from "@/services/curriculumService";
 import authService from "@/services/authService";
-import { FileText, Plus, Trash2, Link as LinkIcon, Loader2 } from "lucide-react";
+import { FileText, Plus, Trash2, Link as LinkIcon, Loader2, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 // Interface para currículos do backend
@@ -86,6 +88,30 @@ const Dashboard = () => {
       title: "Link copiado",
       description: "O link do currículo foi copiado para a área de transferência",
     });
+  };
+
+  const handleVisibilityChange = async (curriculumId: string, isPublic: boolean) => {
+    try {
+      await curriculumService.updateVisibility(curriculumId, isPublic);
+
+      // Atualizar o estado local
+      setCurriculums(curriculums.map(curriculum =>
+        curriculum.id === curriculumId
+          ? { ...curriculum, status: isPublic ? 'Active' : 'Hidden' }
+          : curriculum
+      ));
+
+      toast({
+        title: "Visibilidade alterada",
+        description: `Currículo agora está ${isPublic ? 'público' : 'privado'}`,
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao alterar visibilidade",
+        description: error.message || "Não foi possível alterar a visibilidade do currículo",
+      });
+    }
   };
 
   return (
@@ -168,6 +194,20 @@ const Dashboard = () => {
                       <p className="text-sm">
                         {new Date(curriculum.updatedAt).toLocaleDateString('pt-BR')}
                       </p>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        <EyeOff className="h-4 w-4 text-gray-500" />
+                        <Label htmlFor={`visibility-${curriculum.id}`} className="text-sm font-medium text-gray-500">
+                          Visibilidade
+                        </Label>
+                        <Eye className="h-4 w-4 text-gray-500" />
+                      </div>
+                      <Switch
+                        id={`visibility-${curriculum.id}`}
+                        checked={curriculum.status === 'Active'}
+                        onCheckedChange={(checked) => handleVisibilityChange(curriculum.id, checked)}
+                      />
                     </div>
                   </div>
                 </CardContent>

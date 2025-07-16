@@ -1,6 +1,6 @@
-using CVFastApi.DTOs;
-using CVFastApi.Models;
-using CVFastApi.Repositories.Interfaces;
+using CVFastServices.DTOs;
+using CVFastServices.Models;
+using CVFastServices.Repositories.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

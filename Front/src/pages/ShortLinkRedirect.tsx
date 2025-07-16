@@ -42,15 +42,19 @@ const ShortLinkRedirect = () => {
       // Extrair endereço principal
       const primaryAddress = curriculum.addresses?.find(a => a.type === 'Current') || curriculum.addresses?.[0];
       const addressString = primaryAddress ?
-        `${primaryAddress.street}, ${primaryAddress.number}${primaryAddress.complement ? ', ' + primaryAddress.complement : ''}, ${primaryAddress.neighborhood}, ${primaryAddress.city} - ${primaryAddress.state}${primaryAddress.zipCode ? ', ' + primaryAddress.zipCode : ''}` : '';
+        `${primaryAddress.street}` : '';
+
+      // Extrair nome do usuário dos contatos ou usar um padrão
+      const nameFromContacts = emailContact?.value?.split('@')[0] || 'Usuário';
+      const userName = curriculum.userName || nameFromContacts;
 
       // Converter os dados do backend para o formato do frontend
       const resumeData: Resume = {
         id: curriculum.id,
         userId: curriculum.userId,
         personalInfo: {
-          fullName: curriculum.title,
-          title: curriculum.summary || '',
+          fullName: userName,
+          title: '', // Título profissional vazio para evitar duplicação
           email: emailContact?.value || '',
           phone: phoneContact?.value || '',
           address: addressString,

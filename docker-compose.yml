@@ -5,12 +5,12 @@ services:
     image: postgres:16-alpine
     container_name: cvfast-postgres
     restart: always
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: cvfast
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -30,8 +30,25 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
-    ports:
-      - "5207:80"
+    expose:
+      - "80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cvfast-network
+
+  integration-api:
+    build:
+      context: ./Api
+      dockerfile: CVFastApi.Integration/Dockerfile
+    container_name: cvfast-integration-api
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+    expose:
+      - "80"
     depends_on:
       postgres:
         condition: service_healthy
@@ -50,24 +67,29 @@ services:
       - backend
     networks:
       - cvfast-network
-      
-    nginx:
-      image: nginx:latest
-      container_name: cvfast-nginx
-      restart: always
-      volumes:
-        - ./nginx.conf:/etc/nginx/nginx.conf
-      ports:
-        - "80:80"
-      depends_on:
-        - frontend
-        - backend
-      networks:
-        - cvfast-network
+
+  nginx:
+    build:
+      context: ./Nginx
+      dockerfile: Dockerfile
+    container_name: cvfast-nginx
+    restart: always
+    volumes:
+      - frontend-dist:/usr/share/nginx/html:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro 
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - cvfast-network
+
+volumes:
+  postgres_data:
+  frontend-dist:
 
 networks:
   cvfast-network:
     driver: bridge
-
-volumes:
-  postgres_data:
