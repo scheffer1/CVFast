@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import Navbar from "@/components/shared/Navbar";
 import curriculumService from "@/services/curriculumService";
 import authService from "@/services/authService";
-import { FileText, Plus, Trash2, Link as LinkIcon, Loader2, Eye, EyeOff } from "lucide-react";
+import { FileText, Plus, Trash2, Link as LinkIcon, Loader2, Eye, EyeOff, Edit } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 
 // Interface para currículos do backend
@@ -153,14 +153,27 @@ const Dashboard = () => {
                 <CardHeader>
                   <CardTitle className="flex justify-between items-start">
                     <span className="truncate">{curriculum.title}</span>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                      onClick={() => handleDeleteCurriculum(curriculum.id)}
-                    >
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Link to={`/edit-resume/${curriculum.id}`}>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+                          title="Editar currículo"
+                        >
+                          <Edit className="h-5 w-5" />
+                        </Button>
+                      </Link>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleDeleteCurriculum(curriculum.id)}
+                        title="Excluir currículo"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                    </div>
                   </CardTitle>
                   <CardDescription>
                     {curriculum.summary || "Sem descrição"}
@@ -186,7 +199,7 @@ const Dashboard = () => {
                       <h4 className="text-sm font-medium text-gray-500">Link Curto</h4>
                       <p className="text-sm truncate">
                         {curriculum.shortLinks && curriculum.shortLinks.length > 0 && !curriculum.shortLinks[0].isRevoked
-                          ? `cvfast.com/${curriculum.shortLinks[0].hash}`
+                          ? `cvfast.com.br/${curriculum.shortLinks[0].hash}`
                           : "Nenhum link ativo"}
                       </p>
                     </div>

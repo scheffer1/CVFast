@@ -113,7 +113,7 @@ namespace CVFastServices.Services
         </div>
         <div class='footer'>
             <p>Este é um email automático, não responda.</p>
-            <p>&copy; 2024 CVFast - Centralizador de Currículos</p>
+            <p>&copy; 2025 CVFast - Centralizador de Currículos</p>
         </div>
     </div>
 </body>
