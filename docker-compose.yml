@@ -30,6 +30,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      - EmailSettings__SmtpHost=${EmailSettings__SmtpHost}
+      - EmailSettings__SmtpPort=${EmailSettings__SmtpPort}
+      - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
+      - EmailSettings__Username=${EmailSettings__Username}
+      - EmailSettings__Password=${EmailSettings__Password}
+      - EmailSettings__FromEmail=${EmailSettings__FromEmail}
+      - EmailSettings__FromName=${EmailSettings__FromName}
+      - EmailSettings__ResetTokenExpirationHours=${EmailSettings__ResetTokenExpirationHours}
     expose:
       - "80"
     depends_on:
@@ -47,6 +56,15 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ASPNETCORE_URLS=http://+:80
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      - EmailSettings__SmtpHost=${EmailSettings__SmtpHost}
+      - EmailSettings__SmtpPort=${EmailSettings__SmtpPort}
+      - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
+      - EmailSettings__Username=${EmailSettings__Username}
+      - EmailSettings__Password=${EmailSettings__Password}
+      - EmailSettings__FromEmail=${EmailSettings__FromEmail}
+      - EmailSettings__FromName=${EmailSettings__FromName}
+      - EmailSettings__ResetTokenExpirationHours=${EmailSettings__ResetTokenExpirationHours}
     expose:
       - "80"
     depends_on:
