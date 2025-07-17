@@ -22,8 +22,16 @@ import completeCurriculumService, {
   CreateContactForCurriculumData,
   CreateAddressForCurriculumData
 } from "@/services/completeCurriculumService";
+import curriculumService from "@/services/curriculumService";
+import experienceService from "@/services/experienceService";
+import educationService from "@/services/educationService";
+import skillService from "@/services/skillService";
+import languageService from "@/services/languageService";
+import contactService from "@/services/contactService";
+import addressService from "@/services/addressService";
 import authService from "@/services/authService";
 import { formatDateForBackend } from "@/utils/dateUtils";
+import { FormDatePicker } from "@/components/ui/form-date-picker";
 import { Plus, Trash2, Loader2 } from "lucide-react";
 
 const personalInfoSchema = z.object({
@@ -75,22 +83,97 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const ResumeForm = () => {
+interface ResumeFormProps {
+  mode?: 'create' | 'edit';
+  curriculumId?: string;
+  initialData?: any;
+}
+
+const ResumeForm = ({ mode = 'create', curriculumId, initialData }: ResumeFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [skillInput, setSkillInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
+  // Função para preparar dados iniciais
+  const prepareInitialData = () => {
+    if (mode === 'edit' && initialData) {
+      // Extrair contatos por tipo
+      const emailContact = initialData.contacts?.find((c: any) => c.type === 'Email')?.value || '';
+      const phoneContact = initialData.contacts?.find((c: any) => c.type === 'Phone')?.value || '';
+      const linkedinContact = initialData.contacts?.find((c: any) => c.type === 'LinkedIn')?.value || '';
+      const githubContact = initialData.contacts?.find((c: any) => c.type === 'GitHub')?.value || '';
+      const websiteContact = initialData.contacts?.find((c: any) => c.type === 'Website')?.value || '';
+
+      // Extrair endereço principal
+      const primaryAddress = initialData.addresses?.[0];
+      const addressString = primaryAddress
+        ? `${primaryAddress.street}, ${primaryAddress.number}${primaryAddress.complement ? ', ' + primaryAddress.complement : ''}, ${primaryAddress.neighborhood}, ${primaryAddress.city}, ${primaryAddress.state}`
+        : '';
+
+      return {
+        personalInfo: {
+          fullName: initialData.title || '',
+          email: emailContact,
+          phone: phoneContact,
+          address: addressString,
+          title: initialData.title || '',
+          summary: initialData.summary || '',
+          linkedin: linkedinContact,
+          github: githubContact,
+          website: websiteContact,
+        },
+        education: initialData.educations?.map((edu: any) => ({
+          id: edu.id,
+          institution: edu.institution,
+          degree: edu.degree,
+          fieldOfStudy: edu.fieldOfStudy,
+          startDate: edu.startDate?.split('T')[0] || '',
+          current: !edu.endDate,
+          endDate: edu.endDate?.split('T')[0] || '',
+          description: edu.description || '',
+        })) || [{
+          id: crypto.randomUUID(),
+          institution: "",
+          degree: "",
+          fieldOfStudy: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          description: "",
+        }],
+        experience: initialData.experiences?.map((exp: any) => ({
+          id: exp.id,
+          company: exp.companyName,
+          position: exp.role,
+          location: exp.location || '',
+          startDate: exp.startDate?.split('T')[0] || '',
+          current: !exp.endDate,
+          endDate: exp.endDate?.split('T')[0] || '',
+          description: exp.description || '',
+        })) || [{
+          id: crypto.randomUUID(),
+          company: "",
+          position: "",
+          location: "",
+          startDate: "",
+          endDate: "",
+          current: false,
+          description: "",
+        }],
+        skills: initialData.skills?.map((skill: any) => skill.techName) || [],
+        languages: initialData.languages?.map((lang: any) => ({
+          language: lang.languageName,
+          proficiency: lang.proficiency,
+        })) || [{
+          language: "",
+          proficiency: "Intermediate",
+        }],
+      };
+    }
+
+    // Valores padrão para criação
+    return {
       personalInfo: {
         fullName: "",
         email: "",
@@ -133,7 +216,19 @@ const ResumeForm = () => {
           proficiency: "Intermediate",
         },
       ],
-    },
+    };
+  };
+
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: prepareInitialData(),
   });
 
   const { fields: educationFields, append: appendEducation, remove: removeEducation } = useFieldArray({
@@ -175,7 +270,7 @@ const ResumeForm = () => {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: "Você precisa estar logado para criar um currículo",
+        description: "Você precisa estar logado para salvar um currículo",
       });
       navigate("/login");
       setIsLoading(false);
@@ -183,45 +278,62 @@ const ResumeForm = () => {
     }
 
     try {
-      // Preparar dados das experiências
-      const experiences: CreateExperienceForCurriculumData[] = data.experience
-        .filter(exp => exp.company && exp.position)
-        .map(exp => ({
-          companyName: exp.company,
-          role: exp.position,
-          description: exp.description,
-          startDate: formatDateForBackend(exp.startDate)!,
-          endDate: exp.current ? null : formatDateForBackend(exp.endDate || ''),
-          location: exp.location
-        }));
+      if (mode === 'edit' && curriculumId) {
+        await handleUpdateCurriculum(data);
+      } else {
+        await handleCreateCurriculum(data);
+      }
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: mode === 'edit' ? "Erro ao atualizar currículo" : "Erro ao criar currículo",
+        description: error.message || "Não foi possível salvar o currículo. Tente novamente.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      // Preparar dados das educações
-      const educations: CreateEducationForCurriculumData[] = data.education
-        .filter(edu => edu.institution && edu.degree)
-        .map(edu => ({
-          institution: edu.institution,
-          degree: edu.degree,
-          fieldOfStudy: edu.fieldOfStudy,
-          startDate: formatDateForBackend(edu.startDate)!,
-          endDate: edu.current ? null : formatDateForBackend(edu.endDate || ''),
-          description: edu.description
-        }));
+  const handleCreateCurriculum = async (data: FormValues) => {
+    // Preparar dados das experiências
+    const experiences: CreateExperienceForCurriculumData[] = data.experience
+      .filter(exp => exp.company && exp.position)
+      .map(exp => ({
+        companyName: exp.company,
+        role: exp.position,
+        description: exp.description,
+        startDate: formatDateForBackend(exp.startDate)!,
+        endDate: exp.current ? null : formatDateForBackend(exp.endDate || ''),
+        location: exp.location
+      }));
 
-      // Preparar dados das habilidades
-      const skills: CreateSkillForCurriculumData[] = data.skills
-        .filter(skill => skill.trim())
-        .map(skill => ({
-          techName: skill,
-          proficiency: 'Intermediate' as const // Valor padrão
-        }));
+    // Preparar dados das educações
+    const educations: CreateEducationForCurriculumData[] = data.education
+      .filter(edu => edu.institution && edu.degree)
+      .map(edu => ({
+        institution: edu.institution,
+        degree: edu.degree,
+        fieldOfStudy: edu.fieldOfStudy,
+        startDate: formatDateForBackend(edu.startDate)!,
+        endDate: edu.current ? null : formatDateForBackend(edu.endDate || ''),
+        description: edu.description
+      }));
 
-      // Preparar dados dos idiomas
-      const languages: CreateLanguageForCurriculumData[] = data.languages
-        .filter(lang => lang.language.trim())
-        .map(lang => ({
-          languageName: lang.language,
-          proficiency: lang.proficiency as 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native'
-        }));
+    // Preparar dados das habilidades
+    const skills: CreateSkillForCurriculumData[] = data.skills
+      .filter(skill => skill.trim())
+      .map(skill => ({
+        techName: skill,
+        proficiency: 'Intermediate' as const // Valor padrão
+      }));
+
+    // Preparar dados dos idiomas
+    const languages: CreateLanguageForCurriculumData[] = data.languages
+      .filter(lang => lang.language.trim())
+      .map(lang => ({
+        languageName: lang.language,
+        proficiency: lang.proficiency as 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native'
+      }));
 
       // Preparar dados dos contatos
       const contacts: CreateContactForCurriculumData[] = [];
@@ -305,14 +417,251 @@ const ResumeForm = () => {
       });
 
       navigate(`/resume/${curriculum.id}`);
-    } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Erro ao criar currículo",
-        description: error.message || "Não foi possível criar o currículo. Tente novamente.",
+  };
+
+  const handleUpdateCurriculum = async (data: FormValues) => {
+    try {
+      // 1. Atualizar dados básicos do currículo
+      await curriculumService.update(curriculumId!, {
+        title: data.personalInfo.fullName || "Meu Currículo",
+        summary: data.personalInfo.summary,
+        status: 'Active'
       });
-    } finally {
-      setIsLoading(false);
+
+      // 2. Atualizar experiências
+      await updateExperiences(data.experience);
+
+      // 3. Atualizar educações
+      await updateEducations(data.education);
+
+      // 4. Atualizar habilidades
+      await updateSkills(data.skills);
+
+      // 5. Atualizar idiomas
+      await updateLanguages(data.languages);
+
+      // 6. Atualizar contatos
+      await updateContacts(data.personalInfo);
+
+      // 7. Atualizar endereços
+      await updateAddresses(data.personalInfo.address);
+
+      toast({
+        title: "Sucesso",
+        description: "Seu currículo foi atualizado com sucesso",
+      });
+
+      navigate(`/resume/${curriculumId}`);
+    } catch (error: any) {
+      console.error('Erro ao atualizar currículo:', error);
+      throw error; // Re-throw para ser capturado pelo onSubmit
+    }
+  };
+
+  // Funções auxiliares para atualização completa
+  const updateExperiences = async (newExperiences: FormValues['experience']) => {
+    const originalExperiences = initialData?.experiences || [];
+
+    for (const exp of newExperiences) {
+      if (!exp.company || !exp.position) continue; // Pular experiências vazias
+
+      const experienceData = {
+        curriculumId: curriculumId!,
+        companyName: exp.company,
+        role: exp.position,
+        description: exp.description || '',
+        startDate: formatDateForBackend(exp.startDate)!,
+        endDate: exp.current ? null : formatDateForBackend(exp.endDate || ''),
+        location: exp.location || ''
+      };
+
+      // Se tem ID e é um GUID válido (não gerado pelo crypto.randomUUID), atualizar
+      if (exp.id && originalExperiences.some((orig: any) => orig.id === exp.id)) {
+        await experienceService.update(exp.id, experienceData);
+      } else {
+        // Criar nova experiência
+        await experienceService.create(experienceData);
+      }
+    }
+
+    // Deletar experiências removidas
+    const newExperienceIds = newExperiences.filter(exp => exp.id && originalExperiences.some((orig: any) => orig.id === exp.id)).map(exp => exp.id);
+    const experiencesToDelete = originalExperiences.filter((orig: any) => !newExperienceIds.includes(orig.id));
+
+    for (const expToDelete of experiencesToDelete) {
+      await experienceService.delete(expToDelete.id);
+    }
+  };
+
+  const updateEducations = async (newEducations: FormValues['education']) => {
+    const originalEducations = initialData?.educations || [];
+
+    for (const edu of newEducations) {
+      if (!edu.institution || !edu.degree) continue; // Pular educações vazias
+
+      const educationData = {
+        curriculumId: curriculumId!,
+        institution: edu.institution,
+        degree: edu.degree,
+        fieldOfStudy: edu.fieldOfStudy,
+        startDate: formatDateForBackend(edu.startDate)!,
+        endDate: edu.current ? null : formatDateForBackend(edu.endDate || ''),
+        description: edu.description || ''
+      };
+
+      // Se tem ID e é um GUID válido, atualizar
+      if (edu.id && originalEducations.some((orig: any) => orig.id === edu.id)) {
+        await educationService.update(edu.id, educationData);
+      } else {
+        // Criar nova educação
+        await educationService.create(educationData);
+      }
+    }
+
+    // Deletar educações removidas
+    const newEducationIds = newEducations.filter(edu => edu.id && originalEducations.some((orig: any) => orig.id === edu.id)).map(edu => edu.id);
+    const educationsToDelete = originalEducations.filter((orig: any) => !newEducationIds.includes(orig.id));
+
+    for (const eduToDelete of educationsToDelete) {
+      await educationService.delete(eduToDelete.id);
+    }
+  };
+
+  const updateSkills = async (newSkills: string[]) => {
+    const originalSkills = initialData?.skills || [];
+
+    // Criar novas skills
+    for (const skillName of newSkills) {
+      if (!skillName.trim()) continue;
+
+      // Verificar se a skill já existe
+      const existingSkill = originalSkills.find((orig: any) => orig.techName === skillName);
+      if (!existingSkill) {
+        await skillService.create({
+          curriculumId: curriculumId!,
+          techName: skillName,
+          proficiency: 'Intermediate' as const
+        });
+      }
+    }
+
+    // Deletar skills removidas
+    const skillsToDelete = originalSkills.filter((orig: any) => !newSkills.includes(orig.techName));
+    for (const skillToDelete of skillsToDelete) {
+      await skillService.delete(skillToDelete.id);
+    }
+  };
+
+  const updateLanguages = async (newLanguages: FormValues['languages']) => {
+    const originalLanguages = initialData?.languages || [];
+
+    for (const lang of newLanguages) {
+      if (!lang.language.trim()) continue;
+
+      // Verificar se o idioma já existe
+      const existingLanguage = originalLanguages.find((orig: any) => orig.languageName === lang.language);
+
+      if (existingLanguage) {
+        // Atualizar se o nível mudou
+        if (existingLanguage.proficiency !== lang.proficiency) {
+          await languageService.update(existingLanguage.id, {
+            curriculumId: curriculumId!,
+            languageName: lang.language,
+            proficiency: lang.proficiency as 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native'
+          });
+        }
+      } else {
+        // Criar novo idioma
+        await languageService.create({
+          curriculumId: curriculumId!,
+          languageName: lang.language,
+          proficiency: lang.proficiency as 'Beginner' | 'Intermediate' | 'Advanced' | 'Fluent' | 'Native'
+        });
+      }
+    }
+
+    // Deletar idiomas removidos
+    const newLanguageNames = newLanguages.map(lang => lang.language);
+    const languagesToDelete = originalLanguages.filter((orig: any) => !newLanguageNames.includes(orig.languageName));
+    for (const langToDelete of languagesToDelete) {
+      await languageService.delete(langToDelete.id);
+    }
+  };
+
+  const updateContacts = async (personalInfo: FormValues['personalInfo']) => {
+    const originalContacts = initialData?.contacts || [];
+
+    const contactsToUpdate = [
+      { type: 'Email', value: personalInfo.email, isPrimary: true },
+      { type: 'Phone', value: personalInfo.phone, isPrimary: false },
+      { type: 'LinkedIn', value: personalInfo.linkedin, isPrimary: false },
+      { type: 'GitHub', value: personalInfo.github, isPrimary: false },
+      { type: 'Website', value: personalInfo.website, isPrimary: false }
+    ].filter(contact => contact.value && contact.value.trim());
+
+    for (const contact of contactsToUpdate) {
+      const existingContact = originalContacts.find((orig: any) => orig.type === contact.type);
+
+      if (existingContact) {
+        // Atualizar se o valor mudou
+        if (existingContact.value !== contact.value) {
+          await contactService.update(existingContact.id, {
+            curriculumId: curriculumId!,
+            type: contact.type as 'Email' | 'Phone' | 'LinkedIn' | 'GitHub' | 'Website',
+            value: contact.value,
+            isPrimary: contact.isPrimary
+          });
+        }
+      } else {
+        // Criar novo contato
+        await contactService.create({
+          curriculumId: curriculumId!,
+          type: contact.type as 'Email' | 'Phone' | 'LinkedIn' | 'GitHub' | 'Website',
+          value: contact.value,
+          isPrimary: contact.isPrimary
+        });
+      }
+    }
+
+    // Deletar contatos removidos (que não têm valor nos novos dados)
+    const newContactTypes = contactsToUpdate.map(c => c.type);
+    const contactsToDelete = originalContacts.filter((orig: any) => !newContactTypes.includes(orig.type));
+    for (const contactToDelete of contactsToDelete) {
+      await contactService.delete(contactToDelete.id);
+    }
+  };
+
+  const updateAddresses = async (addressString: string) => {
+    const originalAddresses = initialData?.addresses || [];
+
+    if (addressString && addressString.trim()) {
+      const addressParts = addressString.split(',').map(part => part.trim()).filter(part => part.length > 0);
+
+      const addressData = {
+        curriculumId: curriculumId!,
+        street: addressParts.length > 1 ? addressParts[0] : addressString.trim(),
+        number: 'S/N',
+        complement: '',
+        neighborhood: addressParts[1] || 'Não informado',
+        city: addressParts[2] || 'Não informado',
+        state: addressParts[3] || 'Não informado',
+        country: 'Brasil',
+        zipCode: '',
+        type: 'Current' as const
+      };
+
+      if (originalAddresses.length > 0) {
+        // Atualizar endereço existente
+        await addressService.update(originalAddresses[0].id, addressData);
+      } else {
+        // Criar novo endereço
+        await addressService.create(addressData);
+      }
+    } else {
+      // Se não há endereço, deletar todos os endereços existentes
+      for (const addressToDelete of originalAddresses) {
+        await addressService.delete(addressToDelete.id);
+      }
     }
   };
 
@@ -502,33 +851,36 @@ const ResumeForm = () => {
               </div>
 
               <div className="form-row">
-                <div className="space-y-2">
-                  <Label htmlFor={`education.${index}.startDate`}>Data de Início</Label>
-                  <Input
-                    id={`education.${index}.startDate`}
-                    placeholder="ex: 2018"
-                    {...register(`education.${index}.startDate`)}
-                  />
-                  {errors.education?.[index]?.startDate && (
-                    <p className="text-sm text-red-500">{errors.education[index]?.startDate?.message}</p>
-                  )}
-                </div>
+                <FormDatePicker
+                  control={control}
+                  name={`education.${index}.startDate`}
+                  label="Data de Início"
+                  placeholder="Selecione a data de início"
+                  error={errors.education?.[index]?.startDate?.message}
+                />
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor={`education.${index}.endDate`}>Data de Término</Label>
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`education.${index}.current`}
-                        {...register(`education.${index}.current`)}
+                        checked={watch(`education.${index}.current`)}
+                        onCheckedChange={(checked) => {
+                          setValue(`education.${index}.current`, checked);
+                          if (checked) {
+                            setValue(`education.${index}.endDate`, '');
+                          }
+                        }}
                       />
                       <Label htmlFor={`education.${index}.current`}>Atual</Label>
                     </div>
                   </div>
-                  <Input
-                    id={`education.${index}.endDate`}
-                    placeholder="ex: 2022"
+                  <FormDatePicker
+                    control={control}
+                    name={`education.${index}.endDate`}
+                    placeholder="Selecione a data de término"
                     disabled={watch(`education.${index}.current`)}
-                    {...register(`education.${index}.endDate`)}
+                    error={errors.education?.[index]?.endDate?.message}
                   />
                 </div>
               </div>
@@ -628,33 +980,36 @@ const ResumeForm = () => {
               </div>
 
               <div className="form-row">
-                <div className="space-y-2">
-                  <Label htmlFor={`experience.${index}.startDate`}>Data de Início</Label>
-                  <Input
-                    id={`experience.${index}.startDate`}
-                    placeholder="ex: Jan 2020"
-                    {...register(`experience.${index}.startDate`)}
-                  />
-                  {errors.experience?.[index]?.startDate && (
-                    <p className="text-sm text-red-500">{errors.experience[index]?.startDate?.message}</p>
-                  )}
-                </div>
+                <FormDatePicker
+                  control={control}
+                  name={`experience.${index}.startDate`}
+                  label="Data de Início"
+                  placeholder="Selecione a data de início"
+                  error={errors.experience?.[index]?.startDate?.message}
+                />
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <Label htmlFor={`experience.${index}.endDate`}>Data de Término</Label>
                     <div className="flex items-center space-x-2">
                       <Switch
                         id={`experience.${index}.current`}
-                        {...register(`experience.${index}.current`)}
+                        checked={watch(`experience.${index}.current`)}
+                        onCheckedChange={(checked) => {
+                          setValue(`experience.${index}.current`, checked);
+                          if (checked) {
+                            setValue(`experience.${index}.endDate`, '');
+                          }
+                        }}
                       />
                       <Label htmlFor={`experience.${index}.current`}>Atual</Label>
                     </div>
                   </div>
-                  <Input
-                    id={`experience.${index}.endDate`}
-                    placeholder="ex: Presente"
+                  <FormDatePicker
+                    control={control}
+                    name={`experience.${index}.endDate`}
+                    placeholder="Selecione a data de término"
                     disabled={watch(`experience.${index}.current`)}
-                    {...register(`experience.${index}.endDate`)}
+                    error={errors.experience?.[index]?.endDate?.message}
                   />
                 </div>
               </div>
@@ -806,7 +1161,10 @@ const ResumeForm = () => {
       <div className="flex justify-end space-x-4 pb-10">
         <Button type="submit" size="lg" disabled={isLoading}>
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {isLoading ? "Criando Currículo..." : "Criar Currículo"}
+          {isLoading
+            ? (mode === 'edit' ? "Atualizando Currículo..." : "Criando Currículo...")
+            : (mode === 'edit' ? "Atualizar Currículo" : "Criar Currículo")
+          }
         </Button>
       </div>
     </form>
