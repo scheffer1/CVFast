@@ -150,7 +150,7 @@ const ShortLinkRedirect = () => {
             </p>
           )}
         </div>
-        <ResumePreview resume={resume} />
+        <ResumePreview resume={resume} isOwner={isOwner} />
       </div>
     </div>
   );

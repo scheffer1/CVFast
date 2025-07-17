@@ -96,6 +96,7 @@ export interface CurriculumListResponse {
     status: string;
     createdAt: string;
     updatedAt: string;
+    viewCount: number;
     shortLinks: Array<{
       hash: string;
       isActive: boolean;

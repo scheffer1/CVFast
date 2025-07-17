@@ -3,17 +3,17 @@ import React from "react";
 import { Resume } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
 import { Link } from "react-router-dom";
-import { Calendar, FileText, Link as LinkIcon, Mail, Phone, MapPin } from "lucide-react";
+import { Calendar, Link as LinkIcon, Mail, Phone, MapPin } from "lucide-react";
 
 interface ResumePreviewProps {
   resume: Resume;
+  isOwner?: boolean;
 }
 
-const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
+const ResumePreview: React.FC<ResumePreviewProps> = ({ resume, isOwner = false }) => {
   const { toast } = useToast();
 
   const copyLink = () => {
@@ -195,26 +195,30 @@ const ResumePreview: React.FC<ResumePreviewProps> = ({ resume }) => {
         </CardContent>
       </Card>
 
-      <div className="bg-secondary p-6 rounded-lg mb-8">
-        <h3 className="text-lg font-semibold mb-4">Compartilhe este currículo com empregadores</h3>
-        <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
-          <Input
-            value={resume.shareableLink}
-            readOnly
-            className="flex-1 bg-white"
-          />
-          <Button onClick={copyLink}>Copiar Link</Button>
+      {isOwner && (
+        <div className="bg-secondary p-6 rounded-lg mb-8">
+          <h3 className="text-lg font-semibold mb-4">Compartilhe este currículo com empregadores</h3>
+          <div className="flex flex-col md:flex-row space-y-3 md:space-y-0 md:space-x-3">
+            <Input
+              value={resume.shareableLink}
+              readOnly
+              className="flex-1 bg-white"
+            />
+            <Button onClick={copyLink}>Copiar Link</Button>
+          </div>
+          <p className="text-sm text-gray-600 mt-3">
+            Empresas podem visualizar seu currículo usando este link sem precisar de credenciais de login.
+          </p>
         </div>
-        <p className="text-sm text-gray-600 mt-3">
-          Empresas podem visualizar seu currículo usando este link sem precisar de credenciais de login.
-        </p>
-      </div>
+      )}
 
-      <div className="flex justify-end space-x-4 mb-10">
-        <Link to="/dashboard">
-          <Button variant="outline">Voltar ao Painel</Button>
-        </Link>
-      </div>
+      {isOwner && (
+        <div className="flex justify-end space-x-4 mb-10">
+          <Link to="/dashboard">
+            <Button variant="outline">Voltar ao Painel</Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
