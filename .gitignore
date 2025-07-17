@@ -25,3 +25,4 @@ dist-ssr
 [oO]bj
 bin
 Api/CVFastApi/appsettings.json
+appsettings.json

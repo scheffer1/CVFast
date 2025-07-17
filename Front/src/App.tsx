@@ -12,6 +12,7 @@ import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import Dashboard from "./pages/Dashboard";
 import CreateResume from "./pages/CreateResume";
+import EditResume from "./pages/EditResume";
 import PreviewResume from "./pages/PreviewResume";
 import ShortLinkRedirect from "./pages/ShortLinkRedirect";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,11 @@ const App = () => (
           <Route path="/create-resume" element={
             <ProtectedRoute>
               <CreateResume />
+            </ProtectedRoute>
+          } />
+          <Route path="/edit-resume/:id" element={
+            <ProtectedRoute>
+              <EditResume />
             </ProtectedRoute>
           } />
           <Route path="/resume/:id" element={<PreviewResume />} />
