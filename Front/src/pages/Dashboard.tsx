@@ -199,7 +199,7 @@ const Dashboard = () => {
                       <h4 className="text-sm font-medium text-gray-500">Link Curto</h4>
                       <p className="text-sm truncate">
                         {curriculum.shortLinks && curriculum.shortLinks.length > 0 && !curriculum.shortLinks[0].isRevoked
-                          ? `cvfast.com.br/${curriculum.shortLinks[0].hash}`
+                          ? `cvfast.com.br/s/${curriculum.shortLinks[0].hash}`
                           : "Nenhum link ativo"}
                       </p>
                     </div>
