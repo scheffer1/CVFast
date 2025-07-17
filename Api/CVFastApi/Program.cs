@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Text;
 using CVFastServices.Data;
+using CVFastServices.Models;
 using CVFastServices.Models.Auth;
 using CVFastServices.Repositories;
 using CVFastServices.Repositories.Interfaces;
@@ -99,11 +100,17 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ICurriculumRepository, CurriculumRepository>();
 builder.Services.AddScoped<IShortLinkRepository, ShortLinkRepository>();
 builder.Services.AddScoped<ILanguageRepository, LanguageRepository>();
+builder.Services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+// Configuração das opções
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 // Configuração dos serviços
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IShortLinkService, ShortLinkService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
 
 // Configuração do CORS
 builder.Services.AddCors(options =>

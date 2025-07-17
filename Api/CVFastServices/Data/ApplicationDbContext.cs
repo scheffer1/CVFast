@@ -67,6 +67,11 @@ namespace CVFastServices.Data
         public DbSet<AccessLog> AccessLogs { get; set; } = null!;
 
         /// <summary>
+        /// Tokens de recuperação de senha
+        /// </summary>
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; } = null!;
+
+        /// <summary>
         /// Configuração do modelo
         /// </summary>
         /// <param name="modelBuilder">Builder do modelo</param>
@@ -210,6 +215,22 @@ namespace CVFastServices.Data
                 entity.HasOne(e => e.ShortLink)
                     .WithMany(s => s.AccessLogs)
                     .HasForeignKey(e => e.ShortLinkId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<PasswordResetToken>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Token).IsRequired().HasMaxLength(255);
+                entity.HasIndex(e => e.Token).IsUnique();
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.ExpiresAt).IsRequired();
+                entity.Property(e => e.IsUsed).IsRequired();
+                entity.Property(e => e.UsedAt);
+
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }
