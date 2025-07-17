@@ -36,6 +36,7 @@ namespace CVFastServices.Repositories
                 .Include(c => c.Contacts)
                 .Include(c => c.Addresses)
                 .Include(c => c.ShortLinks)
+                    .ThenInclude(s => s.AccessLogs)
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
     }

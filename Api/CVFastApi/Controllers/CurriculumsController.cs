@@ -683,8 +683,13 @@ namespace CVFastApi.Controllers
         /// </summary>
         /// <param name="curriculum">Modelo Curriculum</param>
         /// <returns>DTO do currículo com shortLinks</returns>
-        private static CurriculumWithShortLinksDTO MapToCurriculumWithShortLinksDto(Curriculum curriculum)
+        private CurriculumWithShortLinksDTO MapToCurriculumWithShortLinksDto(Curriculum curriculum)
         {
+            // Calcular o número total de visualizações somando os AccessLogs de todos os ShortLinks ativos
+            var viewCount = curriculum.ShortLinks
+                .SelectMany(s => s.AccessLogs)
+                .Count();
+
             return new CurriculumWithShortLinksDTO
             {
                 Id = curriculum.Id,
@@ -694,6 +699,7 @@ namespace CVFastApi.Controllers
                 Status = curriculum.Status,
                 CreatedAt = curriculum.CreatedAt,
                 UpdatedAt = curriculum.UpdatedAt,
+                ViewCount = viewCount,
                 ShortLinks = curriculum.ShortLinks.Select(s => new ShortLinkDTO
                 {
                     Id = s.Id,

@@ -101,6 +101,11 @@ namespace CVFastServices.DTOs
         /// Links curtos para compartilhamento do currículo
         /// </summary>
         public ICollection<ShortLinkDTO> ShortLinks { get; set; } = new List<ShortLinkDTO>();
+
+        /// <summary>
+        /// Número total de visualizações do currículo
+        /// </summary>
+        public int ViewCount { get; set; }
     }
 
     /// <summary>

@@ -20,6 +20,7 @@ interface BackendCurriculum {
   status: string;
   createdAt: string;
   updatedAt: string;
+  viewCount: number;
   shortLinks?: Array<{
     id: string;
     curriculumId: string;
@@ -194,6 +195,15 @@ const Dashboard = () => {
                       <p className="text-sm">
                         {new Date(curriculum.updatedAt).toLocaleDateString('pt-BR')}
                       </p>
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-500">Visualizações</h4>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="h-4 w-4 text-blue-500" />
+                        <span className="text-sm font-medium text-blue-600">
+                          {curriculum.viewCount || 0}
+                        </span>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
